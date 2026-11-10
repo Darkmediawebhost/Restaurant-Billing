@@ -34,7 +34,7 @@ import { ReceiptPreview } from './components/ReceiptPreview';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { MobileAppClone } from './components/MobileAppClone';
 import { InstallAppModal } from './components/InstallAppModal';
-import { downloadDesktopShortcut, isAppLaunch, isInstalledDisplay, openAppWindow } from './utils/appLaunch';
+import { downloadDesktopShortcut, isAppLaunch, isInstalledDisplay, isIosDevice, openAppWindow } from './utils/appLaunch';
 import { RotateCcw, Save, Eye, FileText, Check, Smartphone } from 'lucide-react';
 
 export default function App() {
@@ -255,6 +255,16 @@ export default function App() {
   };
 
   const handleDownloadApp = async () => {
+    // iPhone has no install prompt. Open the clone on this screen and do not
+    // download a file — Safari would replace the page with that file.
+    if (isIosDevice()) {
+      setShowInstallModal(false);
+      setFullApp(true);
+      setIsMobileAppCloneMode(true);
+      notify('iPhone app clone is open. To keep the icon, tap Share, then Add to Home Screen.', 'success');
+      return;
+    }
+
     const narrow = window.matchMedia('(max-width: 900px)').matches;
     const alreadyApp = isAppLaunch();
     let opened: Window | null = window;

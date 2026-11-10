@@ -17,6 +17,7 @@ import { BillSummary } from './BillSummary';
 import { BillStyleSelector } from './BillStyleSelector';
 import { TemplateSelector } from './TemplateSelector';
 import { ReceiptPreview } from './ReceiptPreview';
+import { isIosDevice } from '../utils/appLaunch';
 import {
   Smartphone,
   Monitor,
@@ -99,6 +100,16 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
   // Mobile app active tab
   const [activeTab, setActiveTab] = useState<'bill' | 'preview' | 'store' | 'style'>('bill');
   const [showLaunchNote, setShowLaunchNote] = useState(launched);
+  const ios = isIosDevice();
+
+  useEffect(() => {
+    if (!launched) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [launched]);
 
   // Phone container display style: 'frame' (phone mockup) vs 'full' (full mobile view)
   const [viewMode, setViewMode] = useState<'frame' | 'full'>(launched ? 'full' : 'frame');
@@ -122,7 +133,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
     <div
       className={
         launched
-          ? 'h-dvh bg-neutral-950 text-neutral-100 flex flex-col'
+          ? 'fixed inset-0 z-40 h-svh max-h-svh w-full bg-neutral-950 text-neutral-100 flex flex-col overflow-hidden'
           : 'min-h-screen bg-neutral-900 text-neutral-100 flex flex-col items-center justify-start'
       }
     >
@@ -194,13 +205,13 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
         <div
           className={`relative bg-neutral-50 text-neutral-900 flex flex-col shadow-2xl transition-all duration-300 ${
             launched
-              ? 'w-full max-w-lg h-full'
+              ? 'w-full max-w-lg h-full min-h-0 overflow-hidden'
               : showFrame
                 ? 'w-full max-w-[420px] h-[min(860px,calc(100dvh-88px))] rounded-[44px] ring-12 ring-neutral-800 border-[6px] border-neutral-950 overflow-hidden'
                 : 'w-full max-w-xl h-[min(860px,calc(100dvh-88px))] rounded-2xl border border-neutral-300 overflow-hidden'
           }`}
         >
-          <div className="bg-neutral-950 text-white px-6 pt-3 pb-2 shrink-0 select-none">
+          <div className="bg-neutral-950 text-white px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 shrink-0 select-none">
             {showFrame && (
               <div className="flex justify-center -mt-1 mb-1">
                 <div className="w-24 h-5 bg-black rounded-full flex items-center justify-between px-3 border border-neutral-800 shadow-inner">
@@ -305,9 +316,11 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
           {launched && showLaunchNote && (
             <div className="bg-emerald-600 text-white px-3 py-2 flex items-start justify-between gap-3 shrink-0">
               <p className="text-[11px] leading-snug font-medium">
-                {appInstalled
-                  ? 'Installed. Open RestoBill from your home screen next time.'
-                  : 'App is open. Use the browser menu → Install app, so it does not open as a website.'}
+                {ios
+                  ? 'App clone is open. To save the icon: tap Share (square with arrow), then Add to Home Screen.'
+                  : appInstalled
+                    ? 'Installed. Open RestoBill from your home screen next time.'
+                    : 'App is open. Use the browser menu → Install app, so it does not open as a website.'}
               </p>
               <button
                 type="button"
@@ -319,7 +332,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
             </div>
           )}
 
-          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-4 bg-[#FAFAFA]">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-4 space-y-4 bg-[#FAFAFA] [-webkit-overflow-scrolling:touch]">
             {activeTab === 'bill' && (
               <div className="space-y-4 animate-in fade-in duration-150">
                 {/* Bill Details Form */}
@@ -381,7 +394,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
           </div>
 
           {/* Bottom Mobile App Navigation Dock */}
-          <div className="bg-white border-t border-neutral-200 px-2 py-1.5 flex items-center justify-around shrink-0 shadow-lg">
+          <div className="bg-white border-t border-neutral-200 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] flex items-center justify-around shrink-0 shadow-lg">
             <button
               type="button"
               onClick={() => setActiveTab('bill')}

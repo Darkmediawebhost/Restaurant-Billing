@@ -1,5 +1,14 @@
 const APP_WINDOW_NAME = 'RestoBillApp';
 
+/** iPhone, iPod, and iPad. iPadOS reports itself as a Mac, so touch points are checked too. */
+export function isIosDevice() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  const platform = navigator.platform || '';
+  return platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+
 export function appUrl() {
   const url = new URL(window.location.href);
   url.searchParams.set('app', '1');
