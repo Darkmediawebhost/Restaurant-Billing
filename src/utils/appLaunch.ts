@@ -32,6 +32,13 @@ export function isInstalledDisplay() {
   return nav.standalone === true;
 }
 
+/** Phone-sized screens and iPhones use the mobile app. Desktops keep the website. */
+export function prefersMobileLayout() {
+  if (typeof window === 'undefined') return false;
+  if (isIosDevice()) return true;
+  return window.matchMedia('(max-width: 900px)').matches;
+}
+
 /** Opens RestoBill in a full-screen window. Must run directly from a click. */
 export function openAppWindow() {
   if (isAppLaunch()) return window;
@@ -42,10 +49,10 @@ export function openAppWindow() {
     `height=${height}`,
     'left=0',
     'top=0',
-    'menubar=no',
-    'toolbar=no',
-    'location=no',
-    'status=no',
+    'menubar=yes',
+    'toolbar=yes',
+    'location=yes',
+    'status=yes',
     'resizable=yes',
     'scrollbars=yes',
   ].join(',');

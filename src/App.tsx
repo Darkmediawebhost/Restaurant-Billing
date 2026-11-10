@@ -34,16 +34,18 @@ import { ReceiptPreview } from './components/ReceiptPreview';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { MobileAppClone } from './components/MobileAppClone';
 import { InstallAppModal } from './components/InstallAppModal';
-import { downloadDesktopShortcut, isAppLaunch, isInstalledDisplay, isIosDevice, openAppWindow } from './utils/appLaunch';
+import { downloadDesktopShortcut, isAppLaunch, isInstalledDisplay, isIosDevice, openAppWindow, prefersMobileLayout } from './utils/appLaunch';
 import { RotateCcw, Save, Eye, FileText, Check, Smartphone } from 'lucide-react';
 
 export default function App() {
   // Mobile specific view: 'editor' vs 'preview' (standard responsive)
   const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
 
-  // Dedicated mobile app. Opens full-screen when launched from the installed app or ?app=1.
-  const [isMobileAppCloneMode, setIsMobileAppCloneMode] = useState<boolean>(() => isAppLaunch());
-  const [fullApp, setFullApp] = useState<boolean>(() => isAppLaunch());
+  // Phones open the mobile app. A desktop or laptop keeps the website, full screen.
+  const [isMobileAppCloneMode, setIsMobileAppCloneMode] = useState<boolean>(
+    () => isAppLaunch() && prefersMobileLayout()
+  );
+  const [fullApp, setFullApp] = useState<boolean>(() => isAppLaunch() && prefersMobileLayout());
 
   // PWA install prompt & modal
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -174,8 +176,10 @@ export default function App() {
     const onInstalled = () => {
       setAppInstalled(true);
       setDeferredPrompt(null);
-      setFullApp(true);
-      setIsMobileAppCloneMode(true);
+      if (prefersMobileLayout()) {
+        setFullApp(true);
+        setIsMobileAppCloneMode(true);
+      }
     };
     window.addEventListener('beforeinstallprompt', handler);
     window.addEventListener('appinstalled', onInstalled);
@@ -274,16 +278,16 @@ export default function App() {
       return;
     }
 
-    const narrow = window.matchMedia('(max-width: 900px)').matches;
+    const narrow = prefersMobileLayout();
     const alreadyApp = isAppLaunch();
     let opened: Window | null = window;
 
-    if (alreadyApp) {
+    if (alreadyApp && narrow) {
       setShowInstallModal(true);
-    } else if (!narrow) {
+    } else if (!narrow && !alreadyApp) {
       opened = openAppWindow();
     }
-    if (!opened || narrow || alreadyApp) {
+    if (narrow && (!opened || alreadyApp)) {
       setFullApp(true);
       setIsMobileAppCloneMode(true);
     }
@@ -296,8 +300,16 @@ export default function App() {
         setDeferredPrompt(null);
         if (choice.outcome === 'accepted') {
           setAppInstalled(true);
-          setFullApp(true);
-          notify('RestoBill is installed and open. Launch it from your home screen next time — it will not open as a browser tab.', 'success');
+          if (narrow) {
+            setFullApp(true);
+            setIsMobileAppCloneMode(true);
+          }
+          notify(
+            narrow
+              ? 'RestoBill is installed and open. Launch it from your home screen next time.'
+              : 'RestoBill is installed. It opens as the full website, not the phone layout.',
+            'success'
+          );
           return;
         }
       } catch {
@@ -310,16 +322,16 @@ export default function App() {
     }
 
     if (!opened) {
-      notify('Pop-up was blocked, so the app is open on this screen. Allow pop-ups to open it in its own window.', 'info');
+      notify('Pop-up was blocked. Allow pop-ups, then click Download App again to open the full website.', 'info');
       return;
     }
 
     if (opened !== window) opened.focus();
 
     notify(
-      narrow || alreadyApp
+      narrow
         ? 'RestoBill app is open on this screen. To keep it off the browser, use Install app or Add to Home Screen.'
-        : 'RestoBill is open full screen. A RestoBill.url shortcut was also saved in Downloads.',
+        : 'RestoBill is open full screen in the website view. A RestoBill.url shortcut was also saved in Downloads.',
       'success'
     );
   };
