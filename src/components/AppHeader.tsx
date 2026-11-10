@@ -4,17 +4,13 @@ import { Receipt, Plus, FileText, Download, Smartphone } from 'lucide-react';
 interface AppHeaderProps {
   onNewBill: () => void;
   currentBillNumber: string;
-  onToggleMobileAppMode: () => void;
-  isMobileAppMode: boolean;
-  onOpenInstallModal?: () => void;
+  onDownloadApp: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   onNewBill,
   currentBillNumber,
-  onToggleMobileAppMode,
-  isMobileAppMode,
-  onOpenInstallModal,
+  onDownloadApp,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-neutral-200">
@@ -48,16 +44,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             {/* Top Download / Mobile App Clone Icon */}
             <button
               type="button"
-              onClick={onToggleMobileAppMode}
-              title="Click to convert entire website into Mobile App Clone / Download App"
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold text-neutral-800 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded-lg active:scale-95 transition-all whitespace-nowrap shadow-2xs group cursor-pointer"
+              onClick={onDownloadApp}
+              title="Download and open the RestoBill app"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-700 rounded-lg active:scale-95 transition-all whitespace-nowrap shadow-2xs group cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-neutral-700 group-hover:text-neutral-950 group-hover:translate-y-0.5 transition-all" />
-              <Smartphone className="w-3.5 h-3.5 text-neutral-500 group-hover:text-neutral-950 transition-colors" />
-              <span className="hidden sm:inline font-bold">Mobile App</span>
-              <span className="text-[10px] font-bold bg-neutral-950 text-white px-1.5 py-0.5 rounded">
-                Clone
-              </span>
+              <Download className="w-3.5 h-3.5 text-white group-hover:translate-y-0.5 transition-all" />
+              <Smartphone className="w-3.5 h-3.5 text-emerald-100" />
+              <span className="font-bold">Download App</span>
             </button>
 
             <button

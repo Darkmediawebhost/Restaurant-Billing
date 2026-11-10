@@ -109,7 +109,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
     templateId === 'classic_thermal_80mm' || templateId === 'compact_thermal_58mm';
 
   return (
-    <div className="bg-white border border-neutral-200 rounded-xl shadow-xs overflow-hidden flex flex-col h-full">
+    <div className="bg-white border border-neutral-200 rounded-xl shadow-xs flex flex-col lg:max-h-[calc(100vh-6rem)] lg:overflow-hidden">
       {/* Live Preview Controls Header */}
       <div className="p-3 sm:px-4 bg-neutral-50 border-b border-neutral-200 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
       </div>
 
       {/* Preview Viewport Canvas */}
-      <div className="flex-1 bg-neutral-200/50 p-4 sm:p-6 overflow-auto min-h-[460px] flex items-start justify-center">
+      <div className="bg-neutral-200/50 p-4 sm:p-6 overflow-auto flex items-start justify-center lg:flex-1 lg:min-h-[320px]">
         <div
           style={{
             transform: `scale(${zoomLevel / 100})`,

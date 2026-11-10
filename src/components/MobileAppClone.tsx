@@ -7,7 +7,7 @@ import {
   BillStyle,
   TemplateId,
   DiscountType,
-  CalculatedBill,
+  BillCalculations,
 } from '../types/billing';
 import { RestaurantDetailsForm } from './RestaurantDetailsForm';
 import { BillDetailsForm } from './BillDetailsForm';
@@ -22,7 +22,6 @@ import {
   Monitor,
   Download,
   Plus,
-  RotateCcw,
   Save,
   Wifi,
   Battery,
@@ -32,9 +31,6 @@ import {
   Palette,
   Maximize2,
   Minimize2,
-  Check,
-  ArrowLeft,
-  X,
 } from 'lucide-react';
 
 interface MobileAppCloneProps {
@@ -58,12 +54,15 @@ interface MobileAppCloneProps {
   setStyle: React.Dispatch<React.SetStateAction<BillStyle>>;
   templateId: TemplateId;
   setTemplateId: (val: TemplateId) => void;
-  calculated: CalculatedBill;
+  calculated: BillCalculations;
   onNewBill: () => void;
   onResetBill: () => void;
   onSaveDraft: () => void;
   onExitMobile: () => void;
-  onOpenInstallModal: () => void;
+  onDownloadApp: () => void;
+  onNotify: (message: string, type?: 'success' | 'info' | 'error') => void;
+  launched: boolean;
+  appInstalled: boolean;
 }
 
 export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
@@ -92,13 +91,18 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
   onResetBill,
   onSaveDraft,
   onExitMobile,
-  onOpenInstallModal,
+  onDownloadApp,
+  onNotify,
+  launched,
+  appInstalled,
 }) => {
   // Mobile app active tab
   const [activeTab, setActiveTab] = useState<'bill' | 'preview' | 'store' | 'style'>('bill');
-  
+  const [showLaunchNote, setShowLaunchNote] = useState(launched);
+
   // Phone container display style: 'frame' (phone mockup) vs 'full' (full mobile view)
-  const [viewMode, setViewMode] = useState<'frame' | 'full'>('frame');
+  const [viewMode, setViewMode] = useState<'frame' | 'full'>(launched ? 'full' : 'frame');
+  const showFrame = !launched && viewMode === 'frame';
 
   // Live time for status bar
   const [timeString, setTimeString] = useState(() => {
@@ -115,85 +119,89 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-900 text-neutral-100 flex flex-col items-center justify-start pb-8">
-      {/* Top Mobile Clone Control Bar */}
-      <div className="w-full bg-neutral-950 border-b border-neutral-800 px-4 py-2.5 sticky top-0 z-50 shadow-md">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
-          {/* Status Indicator */}
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <div className="flex items-center gap-1.5 font-bold text-white tracking-wide">
-              <Smartphone className="w-4 h-4 text-emerald-400" />
-              <span>Mobile App Mode</span>
+    <div
+      className={
+        launched
+          ? 'h-dvh bg-neutral-950 text-neutral-100 flex flex-col'
+          : 'min-h-screen bg-neutral-900 text-neutral-100 flex flex-col items-center justify-start'
+      }
+    >
+      {!launched && (
+        <div className="w-full bg-neutral-950 border-b border-neutral-800 px-4 py-2.5 sticky top-0 z-50 shadow-md">
+          <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <div className="flex items-center gap-1.5 font-bold text-white tracking-wide">
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+                <span>App preview</span>
+              </div>
+              <span className="text-[11px] text-neutral-400 hidden sm:inline">Inside the browser</span>
             </div>
-            <span className="text-[11px] text-neutral-400 hidden sm:inline">
-              (Live Mobile App Clone)
-            </span>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            {/* View Mode Toggle */}
-            <button
-              type="button"
-              onClick={() => setViewMode(v => v === 'frame' ? 'full' : 'frame')}
-              title={viewMode === 'frame' ? 'Expand to Full Width' : 'Show Phone Frame'}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors cursor-pointer"
-            >
-              {viewMode === 'frame' ? (
-                <>
-                  <Maximize2 className="w-3.5 h-3.5 text-neutral-400" />
-                  <span className="hidden sm:inline">Full View</span>
-                </>
-              ) : (
-                <>
-                  <Minimize2 className="w-3.5 h-3.5 text-neutral-400" />
-                  <span className="hidden sm:inline">Phone Frame</span>
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setViewMode((v) => (v === 'frame' ? 'full' : 'frame'))}
+                title={viewMode === 'frame' ? 'Expand to full width' : 'Show phone frame'}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 transition-colors cursor-pointer"
+              >
+                {viewMode === 'frame' ? (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5 text-neutral-400" />
+                    <span className="hidden sm:inline">Full view</span>
+                  </>
+                ) : (
+                  <>
+                    <Minimize2 className="w-3.5 h-3.5 text-neutral-400" />
+                    <span className="hidden sm:inline">Phone frame</span>
+                  </>
+                )}
+              </button>
 
-            {/* Download / Install App Modal Trigger */}
-            <button
-              type="button"
-              onClick={onOpenInstallModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors shadow-sm cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download App</span>
-            </button>
+              <button
+                type="button"
+                onClick={onDownloadApp}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors shadow-sm cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Open app</span>
+              </button>
 
-            {/* Exit to Desktop */}
-            <button
-              type="button"
-              onClick={onExitMobile}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-medium transition-colors cursor-pointer border border-neutral-700"
-            >
-              <Monitor className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="hidden sm:inline">Desktop Mode</span>
-              <span className="sm:hidden">Exit</span>
-            </button>
+              <button
+                type="button"
+                onClick={onExitMobile}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-medium transition-colors cursor-pointer border border-neutral-700"
+              >
+                <Monitor className="w-3.5 h-3.5 text-neutral-400" />
+                <span className="hidden sm:inline">Desktop site</span>
+                <span className="sm:hidden">Exit</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Main App Container */}
-      <div className={`w-full flex justify-center py-4 sm:py-6 px-2 sm:px-4 ${viewMode === 'full' ? 'max-w-2xl' : ''}`}>
-        {/* Phone Mockup Frame or Full Mobile View */}
+      <div
+        className={
+          launched
+            ? 'flex-1 min-h-0 w-full flex justify-center'
+            : `w-full flex justify-center py-4 sm:py-6 px-2 sm:px-4 ${viewMode === 'full' ? 'max-w-2xl' : ''}`
+        }
+      >
         <div
           className={`relative bg-neutral-50 text-neutral-900 flex flex-col shadow-2xl transition-all duration-300 ${
-            viewMode === 'frame'
-              ? 'w-full max-w-[420px] rounded-[44px] ring-12 ring-neutral-800 border-[6px] border-neutral-950 min-h-[820px] max-h-[92vh] overflow-hidden'
-              : 'w-full max-w-xl rounded-2xl border border-neutral-300 min-h-[800px] overflow-hidden'
+            launched
+              ? 'w-full max-w-lg h-full'
+              : showFrame
+                ? 'w-full max-w-[420px] h-[min(860px,calc(100dvh-88px))] rounded-[44px] ring-12 ring-neutral-800 border-[6px] border-neutral-950 overflow-hidden'
+                : 'w-full max-w-xl h-[min(860px,calc(100dvh-88px))] rounded-2xl border border-neutral-300 overflow-hidden'
           }`}
         >
-          {/* Phone Hardware Top: Dynamic Island & Status Bar (Frame Mode) */}
           <div className="bg-neutral-950 text-white px-6 pt-3 pb-2 shrink-0 select-none">
-            {/* Dynamic Island / Speaker Pill */}
-            {viewMode === 'frame' && (
+            {showFrame && (
               <div className="flex justify-center -mt-1 mb-1">
                 <div className="w-24 h-5 bg-black rounded-full flex items-center justify-between px-3 border border-neutral-800 shadow-inner">
                   <div className="w-2.5 h-2.5 rounded-full bg-neutral-900 ring-1 ring-neutral-700"></div>
@@ -206,12 +214,18 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
             <div className="flex items-center justify-between text-[11px] font-semibold tracking-tight text-neutral-300">
               <span>{timeString}</span>
               <div className="flex items-center gap-2">
-                <Wifi className="w-3.5 h-3.5" />
-                <span className="text-[10px] font-bold">5G</span>
-                <div className="flex items-center gap-0.5">
-                  <Battery className="w-4 h-4 text-emerald-400" />
-                  <span className="text-[10px]">98%</span>
-                </div>
+                {showFrame ? (
+                  <>
+                    <Wifi className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold">5G</span>
+                    <div className="flex items-center gap-0.5">
+                      <Battery className="w-4 h-4 text-emerald-400" />
+                      <span className="text-[10px]">98%</span>
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-[10px] font-bold tracking-wide text-emerald-300">RestoBill</span>
+                )}
               </div>
             </div>
           </div>
@@ -229,6 +243,16 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5">
+              {launched && (
+                <button
+                  type="button"
+                  onClick={onExitMobile}
+                  title="Back to the website"
+                  className="px-2 py-1 text-[11px] font-semibold text-neutral-500 hover:text-neutral-950 hover:bg-neutral-100 rounded-lg"
+                >
+                  Site
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onSaveDraft}
@@ -278,8 +302,24 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
             </button>
           </div>
 
-          {/* Scrollable Mobile App Body */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-[#FAFAFA]">
+          {launched && showLaunchNote && (
+            <div className="bg-emerald-600 text-white px-3 py-2 flex items-start justify-between gap-3 shrink-0">
+              <p className="text-[11px] leading-snug font-medium">
+                {appInstalled
+                  ? 'Installed. Open RestoBill from your home screen next time.'
+                  : 'App is open. Use the browser menu → Install app, so it does not open as a website.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowLaunchNote(false)}
+                className="text-[11px] font-bold underline shrink-0"
+              >
+                Hide
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-4 bg-[#FAFAFA]">
             {activeTab === 'bill' && (
               <div className="space-y-4 animate-in fade-in duration-150">
                 {/* Bill Details Form */}
@@ -301,8 +341,6 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
                   discountValue={discountValue}
                   onDiscountTypeChange={setDiscountType}
                   onDiscountValueChange={setDiscountValue}
-                  paymentMethod={details.paymentMethod}
-                  onPaymentMethodChange={(val) => setDetails((prev) => ({ ...prev, paymentMethod: val }))}
                 />
               </div>
             )}
@@ -313,11 +351,12 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
                   restaurant={restaurant}
                   details={details}
                   items={items}
-                  calculated={calculated}
-                  discountType={discountType}
-                  discountValue={discountValue}
+                  gst={gst}
                   style={style}
                   templateId={templateId}
+                  calculated={calculated}
+                  onNewBill={onNewBill}
+                  onNotify={onNotify}
                 />
               </div>
             )}
@@ -329,23 +368,14 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
                   onChange={setRestaurant}
                   onSaveDefault={onSaveRestaurantDefault}
                 />
-                <GSTSettings config={gst} onChange={setGst} />
+                <GSTSettings gst={gst} onChange={setGst} />
               </div>
             )}
 
             {activeTab === 'style' && (
               <div className="space-y-4 animate-in fade-in duration-150">
-                <TemplateSelector
-                  selectedId={templateId}
-                  onSelect={setTemplateId}
-                  totalAmount={calculated.grandTotal}
-                  diningType={details.diningType}
-                />
-                <BillStyleSelector
-                  style={style}
-                  onChange={setStyle}
-                  diningType={details.diningType}
-                />
+                <TemplateSelector selectedTemplate={templateId} onSelectTemplate={setTemplateId} />
+                <BillStyleSelector style={style} onChange={setStyle} />
               </div>
             )}
           </div>
@@ -375,10 +405,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
               }`}
             >
               <Eye className="w-4 h-4" />
-              <span className="text-[10px]">Receipt</span>
-              <span className="absolute -top-1 right-0 text-[8px] px-1 py-0.2 bg-neutral-900 text-white rounded-full font-bold">
-                ₹{calculated.grandTotal}
-              </span>
+              <span className="text-[10px]">₹{calculated.grandTotal}</span>
             </button>
 
             <button
@@ -409,7 +436,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
           </div>
 
           {/* Bottom Home Indicator Bar (Frame Mode) */}
-          {viewMode === 'frame' && (
+          {showFrame && (
             <div className="bg-white pb-2 pt-1 flex justify-center shrink-0">
               <div className="w-28 h-1 bg-neutral-300 rounded-full"></div>
             </div>

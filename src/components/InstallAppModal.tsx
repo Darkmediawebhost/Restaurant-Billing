@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, Smartphone, Download, Share2, Check, ArrowRight, QrCode } from 'lucide-react';
+import { X, Smartphone, Download, Share2, Check, ArrowRight } from 'lucide-react';
 
 interface InstallAppModalProps {
   isOpen: boolean;
   onClose: () => void;
   deferredPrompt: any;
   onInstallSuccess: () => void;
+  onDownloadApp: () => void;
   onEnterMobileClone: () => void;
 }
 
@@ -14,6 +15,7 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
   onClose,
   deferredPrompt,
   onInstallSuccess,
+  onDownloadApp,
   onEnterMobileClone,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -21,22 +23,23 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
 
   if (!isOpen) return null;
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : 'http://localhost:3000';
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   const handleNativeInstall = async () => {
-    if (deferredPrompt) {
-      setInstalling(true);
+    if (!deferredPrompt) {
+      onDownloadApp();
+      return;
+    }
+    setInstalling(true);
+    try {
       deferredPrompt.prompt();
       const choiceResult = await deferredPrompt.userChoice;
       if (choiceResult.outcome === 'accepted') {
         onInstallSuccess();
         onClose();
       }
+    } finally {
       setInstalling(false);
-    } else {
-      // If native prompt is not available, we offer the mobile app clone or guide
-      onEnterMobileClone();
-      onClose();
     }
   };
 
@@ -52,16 +55,15 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Banner */}
         <div className="bg-neutral-950 text-white p-5 pb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white ring-1 ring-white/20">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-300 ring-1 ring-emerald-400/30">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white tracking-tight">RestoBill Mobile App</h3>
-                <p className="text-xs text-neutral-400">Install or use mobile app clone</p>
+                <h3 className="text-base font-bold text-white tracking-tight">RestoBill app</h3>
+                <p className="text-xs text-neutral-400">Opens as an app, not as this website</p>
               </div>
             </div>
             <button
@@ -74,28 +76,25 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-5 space-y-4">
-          {/* Primary Quick Convert / Install Actions */}
           <div className="space-y-2.5">
             <button
               type="button"
               onClick={() => {
-                onEnterMobileClone();
-                onClose();
+                onDownloadApp();
               }}
-              className="w-full flex items-center justify-between p-3.5 bg-neutral-900 text-white hover:bg-neutral-800 rounded-xl transition-all shadow-sm group font-semibold text-xs sm:text-sm"
+              className="w-full flex items-center justify-between p-3.5 bg-emerald-600 text-white hover:bg-emerald-500 rounded-xl transition-all shadow-sm group font-semibold text-xs sm:text-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                  <Smartphone className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center">
+                  <Download className="w-4 h-4 text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="font-bold">Convert to Mobile App Clone</div>
-                  <div className="text-[11px] text-neutral-300 font-normal">Use mobile app right on this screen</div>
+                  <div className="font-bold">Download and open app</div>
+                  <div className="text-[11px] text-emerald-50 font-normal">Opens RestoBill in its own window</div>
                 </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-emerald-100 group-hover:translate-x-1 transition-transform" />
             </button>
 
             {deferredPrompt && (
@@ -103,40 +102,60 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                 type="button"
                 onClick={handleNativeInstall}
                 disabled={installing}
-                className="w-full flex items-center justify-between p-3.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 rounded-xl transition-all border border-neutral-300 font-semibold text-xs sm:text-sm"
+                className="w-full flex items-center justify-between p-3.5 bg-neutral-950 hover:bg-neutral-800 text-white rounded-xl transition-all font-semibold text-xs sm:text-sm"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center">
-                    <Download className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                    <Smartphone className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold">Download / Install to Device</div>
-                    <div className="text-[11px] text-neutral-500 font-normal">Add directly to your device home screen</div>
+                    <div className="font-bold">{installing ? 'Installing…' : 'Install on this device'}</div>
+                    <div className="text-[11px] text-neutral-300 font-normal">Adds RestoBill to your home screen</div>
                   </div>
                 </div>
-                <span className="text-xs bg-neutral-900 text-white px-2 py-0.5 rounded-md font-bold">1-Click</span>
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => {
+                onEnterMobileClone();
+                onClose();
+              }}
+              className="w-full flex items-center justify-between p-3.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 rounded-xl transition-all border border-neutral-300 font-semibold text-xs sm:text-sm"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center">
+                  <Smartphone className="w-4 h-4 text-neutral-700" />
+                </div>
+                <div className="text-left">
+                  <div className="font-bold">Preview on this page</div>
+                  <div className="text-[11px] text-neutral-500 font-normal">Phone frame inside the browser</div>
+                </div>
+              </div>
+            </button>
           </div>
 
-          {/* Mobile Install Guide */}
           <div className="border border-neutral-200 rounded-xl p-3.5 bg-neutral-50 space-y-3">
-            <div className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-              <span>📲 How to install on your phone:</span>
-            </div>
-
+            <div className="text-xs font-bold text-neutral-900">Keep it off the browser next time</div>
             <div className="space-y-2 text-xs text-neutral-600">
               <div className="flex items-start gap-2">
                 <span className="font-bold text-neutral-900 bg-white px-1.5 py-0.5 rounded border border-neutral-200 text-[10px]">
                   Android
                 </span>
-                <span>Open in Chrome &rarr; tap the top 3 dots (⋮) &rarr; tap <b>"Install app"</b> or <b>"Add to Home screen"</b></span>
+                <span>Chrome menu (⋮) → <b>Install app</b> or <b>Add to Home screen</b></span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-bold text-neutral-900 bg-white px-1.5 py-0.5 rounded border border-neutral-200 text-[10px]">
                   iPhone
                 </span>
-                <span>Open in Safari &rarr; tap the Share button (⎋) &rarr; tap <b>"Add to Home Screen"</b></span>
+                <span>Safari Share button → <b>Add to Home Screen</b></span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-bold text-neutral-900 bg-white px-1.5 py-0.5 rounded border border-neutral-200 text-[10px]">
+                  Desktop
+                </span>
+                <span>Use the RestoBill window, or open <b>RestoBill.url</b> from Downloads</span>
               </div>
             </div>
 
@@ -148,13 +167,12 @@ export const InstallAppModal: React.FC<InstallAppModalProps> = ({
                 className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-white border border-neutral-300 rounded-md hover:bg-neutral-100 transition-colors text-neutral-800 shrink-0"
               >
                 {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Share2 className="w-3 h-3" />}
-                <span>{copied ? 'Copied Link!' : 'Copy Link'}</span>
+                <span>{copied ? 'Copied' : 'Copy link'}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-5 py-3 bg-neutral-100 border-t border-neutral-200 flex items-center justify-end">
           <button
             type="button"

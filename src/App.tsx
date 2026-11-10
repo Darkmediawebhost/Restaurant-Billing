@@ -34,18 +34,21 @@ import { ReceiptPreview } from './components/ReceiptPreview';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { MobileAppClone } from './components/MobileAppClone';
 import { InstallAppModal } from './components/InstallAppModal';
-import { RotateCcw, Save, Eye, FileText, Check, Smartphone, Download } from 'lucide-react';
+import { downloadDesktopShortcut, isAppLaunch, isInstalledDisplay, openAppWindow } from './utils/appLaunch';
+import { RotateCcw, Save, Eye, FileText, Check, Smartphone } from 'lucide-react';
 
 export default function App() {
   // Mobile specific view: 'editor' vs 'preview' (standard responsive)
   const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
 
-  // Dedicated Mobile App Clone mode
-  const [isMobileAppCloneMode, setIsMobileAppCloneMode] = useState<boolean>(false);
+  // Dedicated mobile app. Opens full-screen when launched from the installed app or ?app=1.
+  const [isMobileAppCloneMode, setIsMobileAppCloneMode] = useState<boolean>(() => isAppLaunch());
+  const [fullApp, setFullApp] = useState<boolean>(() => isAppLaunch());
 
   // PWA install prompt & modal
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallModal, setShowInstallModal] = useState<boolean>(false);
+  const [appInstalled, setAppInstalled] = useState<boolean>(() => isInstalledDisplay());
 
   // Confirmation modal state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -159,8 +162,18 @@ export default function App() {
       e.preventDefault();
       setDeferredPrompt(e);
     };
+    const onInstalled = () => {
+      setAppInstalled(true);
+      setDeferredPrompt(null);
+      setFullApp(true);
+      setIsMobileAppCloneMode(true);
+    };
     window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
   }, []);
 
   // Keyboard shortcuts: Ctrl+P to Print, Ctrl+S to save draft, Alt+M to toggle Mobile App Clone
@@ -241,6 +254,57 @@ export default function App() {
     notify(`Started new bill #${newBillNo}`, 'info');
   };
 
+  const handleDownloadApp = async () => {
+    const narrow = window.matchMedia('(max-width: 900px)').matches;
+    const alreadyApp = isAppLaunch();
+    let opened: Window | null = window;
+
+    if (alreadyApp) {
+      setShowInstallModal(true);
+    } else if (!narrow) {
+      opened = openAppWindow();
+    }
+    if (!opened || narrow || alreadyApp) {
+      setFullApp(true);
+      setIsMobileAppCloneMode(true);
+    }
+
+    const promptEvent = deferredPrompt;
+    if (promptEvent) {
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        setDeferredPrompt(null);
+        if (choice.outcome === 'accepted') {
+          setAppInstalled(true);
+          setFullApp(true);
+          notify('RestoBill is installed and open. Launch it from your home screen next time — it will not open as a browser tab.', 'success');
+          return;
+        }
+      } catch {
+        setDeferredPrompt(null);
+      }
+    }
+
+    if (!alreadyApp && !narrow && !appInstalled && !isInstalledDisplay()) {
+      downloadDesktopShortcut();
+    }
+
+    if (!opened) {
+      notify('Pop-up was blocked, so the app is open on this screen. Allow pop-ups to open it in its own window.', 'info');
+      return;
+    }
+
+    if (opened !== window) opened.focus();
+
+    notify(
+      narrow || alreadyApp
+        ? 'RestoBill app is open on this screen. To keep it off the browser, use Install app or Add to Home Screen.'
+        : 'RestoBill is open in its own window. A RestoBill.url shortcut was also saved in Downloads.',
+      'success'
+    );
+  };
+
   const handleResetBillConfirm = () => {
     setItems([]);
     setDiscountValue(0);
@@ -264,10 +328,12 @@ export default function App() {
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}
         deferredPrompt={deferredPrompt}
-        onInstallSuccess={() => notify('App installation initiated!', 'success')}
+        onInstallSuccess={() => notify('RestoBill is installed and open.', 'success')}
+        onDownloadApp={handleDownloadApp}
         onEnterMobileClone={() => {
+          setFullApp(false);
           setIsMobileAppCloneMode(true);
-          notify('Switched to Mobile App Clone mode', 'info');
+          notify('Previewing the app on this page', 'info');
         }}
       />
 
@@ -310,8 +376,18 @@ export default function App() {
             });
             notify('Draft saved to device storage', 'success');
           }}
-          onExitMobile={() => setIsMobileAppCloneMode(false)}
-          onOpenInstallModal={() => setShowInstallModal(true)}
+          onExitMobile={() => {
+            if (window.opener && isAppLaunch()) {
+              window.close();
+              return;
+            }
+            setFullApp(false);
+            setIsMobileAppCloneMode(false);
+          }}
+          onDownloadApp={handleDownloadApp}
+          onNotify={notify}
+          launched={fullApp || isAppLaunch()}
+          appInstalled={appInstalled}
         />
       ) : (
         /* ================= STANDARD DESKTOP / RESPONSIVE VIEW ================= */
@@ -320,9 +396,7 @@ export default function App() {
           <AppHeader
             onNewBill={handleNewBill}
             currentBillNumber={details.billNumber}
-            onToggleMobileAppMode={() => setIsMobileAppCloneMode(true)}
-            isMobileAppMode={false}
-            onOpenInstallModal={() => setShowInstallModal(true)}
+            onDownloadApp={handleDownloadApp}
           />
 
       {/* Main Content Area */}
@@ -370,12 +444,12 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setIsMobileAppCloneMode(true)}
-                title="Convert entire website to mobile app clone"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-neutral-800 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded-lg transition-colors cursor-pointer"
+                onClick={handleDownloadApp}
+                title="Download and open the RestoBill app"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 border border-emerald-700 rounded-lg transition-colors cursor-pointer"
               >
-                <Smartphone className="w-3.5 h-3.5 text-neutral-700" />
-                <span>Mobile App Clone</span>
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Open App</span>
               </button>
 
               <button

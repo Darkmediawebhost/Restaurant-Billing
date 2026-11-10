@@ -1,18 +1,33 @@
 {
-  "name": "RestoBill - Restaurant & Food Bill Generator",
+  "id": "/",
+  "name": "RestoBill",
   "short_name": "RestoBill",
   "description": "Professional restaurant & food billing generator with thermal receipt & GST support",
-  "start_url": "/",
+  "start_url": "/?app=1",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["standalone"],
+  "background_color": "#09090b",
   "theme_color": "#09090b",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

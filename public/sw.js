@@ -1,17 +1,23 @@
-// RestoBill Service Worker for PWA offline & standalone installation
-const CACHE_NAME = 'restobill-v1';
+// RestoBill service worker. A fetch handler is required for install.
+const CACHE_NAME = 'restobill-v2';
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let browser fetch normally, with fallback if needed
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  event.respondWith(fetch(request));
 });
