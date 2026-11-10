@@ -26,7 +26,7 @@ export const CompactThermal: React.FC<TemplateProps> = ({
             <img
               src={restaurant.logoUrl}
               alt={restaurant.name}
-              className="max-h-12 max-w-[140px] object-contain grayscale"
+              className="block h-12 w-auto max-w-[140px] object-contain"
             />
           </div>
         )}

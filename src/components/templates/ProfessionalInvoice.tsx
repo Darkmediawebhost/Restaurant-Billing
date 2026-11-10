@@ -24,7 +24,7 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
               <img
                 src={restaurant.logoUrl}
                 alt={restaurant.name}
-                className="max-h-16 max-w-[200px] object-contain grayscale"
+                className="block h-16 w-auto max-w-[200px] object-contain"
               />
             </div>
           )}

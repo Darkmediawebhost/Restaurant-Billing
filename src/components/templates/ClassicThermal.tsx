@@ -42,7 +42,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
             <img
               src={restaurant.logoUrl}
               alt={restaurant.name}
-              className="max-h-16 max-w-[180px] object-contain grayscale"
+              className="block h-16 w-auto max-w-[180px] object-contain"
             />
           </div>
         )}
