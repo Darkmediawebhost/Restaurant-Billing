@@ -22,7 +22,6 @@ import {
   getStoredDraft,
   saveDraft,
 } from './utils/storage';
-import { generateBillPDF, printReceiptIsolated } from './utils/pdfGenerator';
 import { AppHeader } from './components/AppHeader';
 import { RestaurantDetailsForm } from './components/RestaurantDetailsForm';
 import { BillDetailsForm } from './components/BillDetailsForm';
@@ -35,27 +34,14 @@ import { ReceiptPreview } from './components/ReceiptPreview';
 import { ToastContainer, ToastMessage } from './components/Toast';
 import { MobileAppClone } from './components/MobileAppClone';
 import { InstallAppModal } from './components/InstallAppModal';
-import { ClassicThermal } from './components/templates/ClassicThermal';
-import { CompactThermal } from './components/templates/CompactThermal';
-import { ModernInvoice } from './components/templates/ModernInvoice';
-import { ProfessionalInvoice } from './components/templates/ProfessionalInvoice';
-import { ElegantMinimal } from './components/templates/ElegantMinimal';
-import { RotateCcw, Save, Eye, FileText, Check, Smartphone, Monitor } from 'lucide-react';
+import { RotateCcw, Save, Eye, FileText, Check, Smartphone, Download } from 'lucide-react';
 
 export default function App() {
-  // Mobile specific view: 'editor' vs 'preview' (for split desktop fallback)
+  // Mobile specific view: 'editor' vs 'preview' (standard responsive)
   const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
 
-  // Dedicated Mobile App Clone view mode
-  const [isMobileAppCloneMode, setIsMobileAppCloneMode] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return true;
-    }
-    return false;
-  });
-
-  // PDF downloading state
-  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  // Dedicated Mobile App Clone mode
+  const [isMobileAppCloneMode, setIsMobileAppCloneMode] = useState<boolean>(false);
 
   // PWA install prompt & modal
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -63,16 +49,6 @@ export default function App() {
 
   // Confirmation modal state
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-
-  // Capture beforeinstallprompt for PWA installation
-  useEffect(() => {
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
 
   // Toast notifications
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -177,15 +153,22 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [details, items, gst, style, templateId, discountType, discountValue, useRandomSuffix]);
 
-  // Keyboard shortcuts: Ctrl+P to Print, Ctrl+S to save draft, Ctrl+D to Download PDF
+  // Listen for PWA install prompt
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  // Keyboard shortcuts: Ctrl+P to Print, Ctrl+S to save draft, Alt+M to toggle Mobile App Clone
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
-        handlePrint();
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
-        e.preventDefault();
-        handleDownload();
+        window.print();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         saveDraft({
@@ -199,6 +182,9 @@ export default function App() {
           useRandomSuffix,
         });
         notify('Draft bill saved to device', 'success');
+      } else if (e.altKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        setIsMobileAppCloneMode((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -268,244 +254,232 @@ export default function App() {
     notify('Bill items and customer fields reset', 'info');
   };
 
-  // Dedicated Print handler
-  const handlePrint = () => {
-    try {
-      printReceiptIsolated('printable-bill', `Restaurant Bill - ${details.billNumber}`);
-      notify('Print dialog launched', 'info');
-    } catch (e) {
-      console.warn('Fallback print', e);
-      window.print();
-    }
-  };
-
-  // Dedicated Download Bill PDF handler (Triggered by the top small download icon!)
-  const handleDownload = async () => {
-    try {
-      setIsDownloading(true);
-      await generateBillPDF({
-        elementId: 'printable-bill',
-        billNumber: details.billNumber,
-        templateId,
-      });
-      notify(`Bill PDF downloaded: Restaurant_Bill_${details.billNumber}.pdf`, 'success');
-    } catch (err) {
-      console.error('Download error:', err);
-      const errMsg = err instanceof Error ? err.message : 'Unknown error';
-      notify(`PDF generation error: ${errMsg}. Launching print fallback...`, 'error');
-      setTimeout(() => {
-        handlePrint();
-      }, 400);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  // Helper to render hidden template so PDF generator and print always find it
-  const renderHiddenTemplate = () => {
-    const props = { restaurant, details, items, gst, style, calculated };
-    switch (templateId) {
-      case 'compact_thermal_58mm':
-        return <CompactThermal {...props} />;
-      case 'modern_invoice_a5':
-        return <ModernInvoice {...props} />;
-      case 'professional_invoice_a4':
-        return <ProfessionalInvoice {...props} />;
-      case 'elegant_minimal_a4':
-        return <ElegantMinimal {...props} />;
-      case 'classic_thermal_80mm':
-      default:
-        return <ClassicThermal {...props} />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#F0F2F5] flex flex-col selection:bg-neutral-900 selection:text-white">
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col selection:bg-neutral-900 selection:text-white">
       {/* Toast Notification Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      {/* Primary Top Bar (Contains the TOP SMALL DOWNLOAD ICON BUTTON!) */}
-      <AppHeader
-        onNewBill={handleNewBill}
-        currentBillNumber={details.billNumber}
-        onDownload={handleDownload}
-        isDownloading={isDownloading}
-        onPrint={handlePrint}
-        viewMode={isMobileAppCloneMode ? 'mobile' : 'desktop'}
-        onToggleViewMode={(mode) => {
-          setIsMobileAppCloneMode(mode === 'mobile');
-          if (mode === 'mobile') {
-            notify('Entire website converted to Mobile App Clone!', 'success');
-          } else {
-            notify('Switched to Desktop Split View', 'info');
-          }
-        }}
-        onOpenInstallApp={() => {
+      {/* PWA / Download Mobile App Modal */}
+      <InstallAppModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        deferredPrompt={deferredPrompt}
+        onInstallSuccess={() => notify('App installation initiated!', 'success')}
+        onEnterMobileClone={() => {
           setIsMobileAppCloneMode(true);
-          setShowInstallModal(true);
-          notify('Entire website converted to Mobile App Clone!', 'success');
+          notify('Switched to Mobile App Clone mode', 'info');
         }}
       />
 
-      {/* Hidden persistent receipt container: ensures top small icon download works from ANY tab */}
-      <div
-        className="fixed -left-[9999px] top-0 pointer-events-none opacity-0 select-none z-[-9999]"
-        aria-hidden="true"
-      >
-        <div id="printable-bill-hidden" className="bg-white p-4">
-          {renderHiddenTemplate()}
-        </div>
-      </div>
-
-      {/* MAIN VIEW CONTENT */}
       {isMobileAppCloneMode ? (
-        /* ==================== 1. MOBILE APP CLONE VIEW ==================== */
-        <main className="flex-1 w-full max-w-7xl mx-auto py-2 sm:py-6">
-          <MobileAppClone
-            restaurant={restaurant}
-            onRestaurantChange={setRestaurant}
-            onSaveRestaurantDefault={handleSaveRestaurantDefault}
-            details={details}
-            onDetailsChange={setDetails}
-            onRegenerateBillNumber={handleRegenerateBillNumber}
-            useRandomSuffix={useRandomSuffix}
-            onToggleRandomSuffix={handleToggleRandomSuffix}
-            items={items}
-            onItemsChange={setItems}
-            gst={gst}
-            onGstChange={setGst}
-            discountType={discountType}
-            discountValue={discountValue}
-            onDiscountTypeChange={setDiscountType}
-            onDiscountValueChange={setDiscountValue}
-            style={style}
-            onStyleChange={setStyle}
-            templateId={templateId}
-            onTemplateChange={setTemplateId}
-            calculated={calculated}
-            onNewBill={handleNewBill}
-            onResetBill={() => setShowResetConfirm(true)}
-            onDownload={handleDownload}
-            isDownloading={isDownloading}
-            onPrint={handlePrint}
-            onNotify={notify}
-            isFrameMode={true}
-            onOpenInstallApp={() => setShowInstallModal(true)}
-            onExitMobile={() => setIsMobileAppCloneMode(false)}
-          />
-        </main>
+        /* ================= MOBILE APP CLONE MODE ================= */
+        <MobileAppClone
+          restaurant={restaurant}
+          setRestaurant={setRestaurant}
+          onSaveRestaurantDefault={handleSaveRestaurantDefault}
+          details={details}
+          setDetails={setDetails}
+          onRegenerateBillNumber={handleRegenerateBillNumber}
+          useRandomSuffix={useRandomSuffix}
+          onToggleRandomSuffix={handleToggleRandomSuffix}
+          items={items}
+          setItems={setItems}
+          gst={gst}
+          setGst={setGst}
+          discountType={discountType}
+          setDiscountType={setDiscountType}
+          discountValue={discountValue}
+          setDiscountValue={setDiscountValue}
+          style={style}
+          setStyle={setStyle}
+          templateId={templateId}
+          setTemplateId={setTemplateId}
+          calculated={calculated}
+          onNewBill={handleNewBill}
+          onResetBill={() => setShowResetConfirm(true)}
+          onSaveDraft={() => {
+            saveDraft({
+              billDetails: details,
+              items,
+              gst,
+              style,
+              templateId,
+              discountType,
+              discountValue,
+              useRandomSuffix,
+            });
+            notify('Draft saved to device storage', 'success');
+          }}
+          onExitMobile={() => setIsMobileAppCloneMode(false)}
+          onOpenInstallModal={() => setShowInstallModal(true)}
+        />
       ) : (
-        /* ==================== 2. DESKTOP SPLIT POS VIEW ==================== */
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="space-y-6">
-            {/* Quick Actions Header Strip */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white border border-neutral-200 rounded-xl shadow-2xs">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-neutral-800">Draft Status:</span>
-                <span className="inline-flex items-center gap-1 text-[11px] text-neutral-500 font-medium">
-                  <Check className="w-3 h-3 text-neutral-900" />
-                  <span>Auto-saved to device</span>
-                </span>
-              </div>
+        /* ================= STANDARD DESKTOP / RESPONSIVE VIEW ================= */
+        <>
+          {/* Primary Top Bar */}
+          <AppHeader
+            onNewBill={handleNewBill}
+            currentBillNumber={details.billNumber}
+            onToggleMobileAppMode={() => setIsMobileAppCloneMode(true)}
+            isMobileAppMode={false}
+            onOpenInstallModal={() => setShowInstallModal(true)}
+          />
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowResetConfirm(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reset Form</span>
-                </button>
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="space-y-6">
+          {/* Mobile View Switcher (Editor vs Preview tabs) */}
+          <div className="lg:hidden flex items-center p-1 bg-neutral-200/80 rounded-lg border border-neutral-300">
+            <button
+              type="button"
+              onClick={() => setMobileView('editor')}
+              className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                mobileView === 'editor'
+                  ? 'bg-white text-neutral-950 shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-950'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Bill Editor</span>
+            </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    saveDraft({
-                      billDetails: details,
-                      items,
-                      gst,
-                      style,
-                      templateId,
-                      discountType,
-                      discountValue,
-                      useRandomSuffix,
-                    });
-                    notify('Draft saved to device storage', 'success');
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-800 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors border border-neutral-200 cursor-pointer"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save Draft</span>
-                </button>
+            <button
+              type="button"
+              onClick={() => setMobileView('preview')}
+              className={`flex-1 py-2 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                mobileView === 'preview'
+                  ? 'bg-white text-neutral-950 shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-950'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Live Preview (₹{calculated.grandTotal})</span>
+            </button>
+          </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsMobileAppCloneMode(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-all shadow-xs cursor-pointer"
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span>Switch to Mobile App</span>
-                </button>
-              </div>
+          {/* Quick Actions Header Strip */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white border border-neutral-200 rounded-xl shadow-2xs">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-neutral-800">Draft Status:</span>
+              <span className="inline-flex items-center gap-1 text-[11px] text-neutral-500 font-medium">
+                <Check className="w-3 h-3 text-neutral-900" />
+                <span>Auto-saved to device</span>
+              </span>
             </div>
 
-            {/* Two-Column Split Layout (Editor 60% / Live Receipt 40%) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Left Column: Editor */}
-              <div className="lg:col-span-7 space-y-6">
-                <RestaurantDetailsForm
-                  restaurant={restaurant}
-                  onChange={setRestaurant}
-                  onSaveDefault={handleSaveRestaurantDefault}
-                />
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsMobileAppCloneMode(true)}
+                title="Convert entire website to mobile app clone"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-neutral-800 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded-lg transition-colors cursor-pointer"
+              >
+                <Smartphone className="w-3.5 h-3.5 text-neutral-700" />
+                <span>Mobile App Clone</span>
+              </button>
 
-                <BillDetailsForm
-                  details={details}
-                  onChange={setDetails}
-                  onRegenerateBillNumber={handleRegenerateBillNumber}
-                  useRandomSuffix={useRandomSuffix}
-                  onToggleRandomSuffix={handleToggleRandomSuffix}
-                />
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Form</span>
+              </button>
 
-                <ItemTable items={items} onChange={setItems} />
-
-                <GSTSettings gst={gst} onChange={setGst} />
-
-                <BillSummary
-                  calculated={calculated}
-                  discountType={discountType}
-                  discountValue={discountValue}
-                  onDiscountTypeChange={setDiscountType}
-                  onDiscountValueChange={setDiscountValue}
-                />
-
-                <BillStyleSelector style={style} onChange={setStyle} />
-
-                <TemplateSelector
-                  selectedTemplate={templateId}
-                  onSelectTemplate={setTemplateId}
-                />
-              </div>
-
-              {/* Right Column: Live Bill Preview */}
-              <div className="lg:col-span-5 lg:sticky lg:top-20">
-                <ReceiptPreview
-                  restaurant={restaurant}
-                  details={details}
-                  items={items}
-                  gst={gst}
-                  style={style}
-                  templateId={templateId}
-                  calculated={calculated}
-                  onNewBill={handleNewBill}
-                  onNotify={notify}
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  saveDraft({
+                    billDetails: details,
+                    items,
+                    gst,
+                    style,
+                    templateId,
+                    discountType,
+                    discountValue,
+                    useRandomSuffix,
+                  });
+                  notify('Draft saved to device storage', 'success');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-800 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors border border-neutral-200"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Draft</span>
+              </button>
             </div>
           </div>
-        </main>
-      )}
+
+          {/* Two-Column Layout (Desktop: 60% Editor / 40% Live Preview) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Editor (60% ~ 7 cols) */}
+            <div
+              className={`lg:col-span-7 space-y-6 ${
+                mobileView === 'preview' ? 'hidden lg:block' : 'block'
+              }`}
+            >
+              {/* 1. Restaurant Information */}
+              <RestaurantDetailsForm
+                restaurant={restaurant}
+                onChange={setRestaurant}
+                onSaveDefault={handleSaveRestaurantDefault}
+              />
+
+              {/* 2. Bill Metadata & Customer Info */}
+              <BillDetailsForm
+                details={details}
+                onChange={setDetails}
+                onRegenerateBillNumber={handleRegenerateBillNumber}
+                useRandomSuffix={useRandomSuffix}
+                onToggleRandomSuffix={handleToggleRandomSuffix}
+              />
+
+              {/* 3. Food Items Management */}
+              <ItemTable items={items} onChange={setItems} />
+
+              {/* 4. GST Configuration */}
+              <GSTSettings gst={gst} onChange={setGst} />
+
+              {/* 5. Bill Summary & Discount */}
+              <BillSummary
+                calculated={calculated}
+                discountType={discountType}
+                discountValue={discountValue}
+                onDiscountTypeChange={setDiscountType}
+                onDiscountValueChange={setDiscountValue}
+              />
+
+              {/* 6. Bill Style Customization */}
+              <BillStyleSelector style={style} onChange={setStyle} />
+
+              {/* 7. Template Selection */}
+              <TemplateSelector
+                selectedTemplate={templateId}
+                onSelectTemplate={setTemplateId}
+              />
+            </div>
+
+            {/* Right Column: Live Bill Preview (40% ~ 5 cols, Sticky on Desktop) */}
+            <div
+              className={`lg:col-span-5 lg:sticky lg:top-20 ${
+                mobileView === 'editor' ? 'hidden lg:block' : 'block'
+              }`}
+            >
+              <ReceiptPreview
+                restaurant={restaurant}
+                details={details}
+                items={items}
+                gst={gst}
+                style={style}
+                templateId={templateId}
+                calculated={calculated}
+                onNewBill={handleNewBill}
+                onNotify={notify}
+              />
+            </div>
+          </div>
+        </div>
+      </main>
 
       {/* Reset Bill Confirmation Modal */}
       {showResetConfirm && (
@@ -520,14 +494,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="px-3.5 py-2 text-xs font-medium text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors cursor-pointer"
+                className="px-3.5 py-2 text-xs font-medium text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleResetBillConfirm}
-                className="px-3.5 py-2 text-xs font-semibold text-white bg-neutral-950 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
+                className="px-3.5 py-2 text-xs font-semibold text-white bg-neutral-950 hover:bg-neutral-800 rounded-lg transition-colors"
               >
                 Confirm Reset
               </button>
@@ -536,17 +510,37 @@ export default function App() {
         </div>
       )}
 
-      {/* PWA App Install Modal */}
-      <InstallAppModal
-        isOpen={showInstallModal}
-        onClose={() => setShowInstallModal(false)}
-        deferredPrompt={deferredPrompt}
-        onInstallSuccess={() => notify('App installed successfully!', 'success')}
-        onEnterMobileClone={() => {
-          setIsMobileAppCloneMode(true);
-          notify('Switched to Mobile App Clone mode', 'success');
-        }}
-      />
+      {/* Mobile Fixed Bottom Action Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-neutral-200 p-3 shadow-lg flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[10px] text-neutral-400 uppercase font-semibold">Total Due</div>
+          <div className="font-mono font-bold text-base text-neutral-950">
+            ₹{calculated.grandTotal}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {mobileView === 'editor' ? (
+            <button
+              type="button"
+              onClick={() => setMobileView('preview')}
+              className="px-4 py-2 text-xs font-semibold text-white bg-neutral-950 rounded-lg shadow-xs flex items-center gap-1.5"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Preview & Print</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setMobileView('editor')}
+              className="px-4 py-2 text-xs font-semibold text-neutral-800 bg-neutral-100 rounded-lg border border-neutral-200 flex items-center gap-1.5"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Back to Edit</span>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

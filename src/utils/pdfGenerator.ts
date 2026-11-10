@@ -33,13 +33,7 @@ export async function generateBillPDF({
   billNumber,
   templateId,
 }: GeneratePDFOptions): Promise<void> {
-  let sourceElement = document.getElementById(elementId);
-  if (!sourceElement) {
-    sourceElement = document.getElementById('printable-bill-hidden');
-  }
-  if (!sourceElement) {
-    sourceElement = document.getElementById('printable-bill');
-  }
+  const sourceElement = document.getElementById(elementId);
   if (!sourceElement) {
     throw new Error('Receipt content element not found in DOM');
   }
@@ -166,13 +160,7 @@ export async function generateBillPDF({
  * iframe so surrounding UI/buttons never clutter the printed page.
  */
 export function printReceiptIsolated(elementId: string, title = 'Restaurant Bill'): void {
-  let sourceElement = document.getElementById(elementId);
-  if (!sourceElement) {
-    sourceElement = document.getElementById('printable-bill-hidden');
-  }
-  if (!sourceElement) {
-    sourceElement = document.getElementById('printable-bill');
-  }
+  const sourceElement = document.getElementById(elementId);
   if (!sourceElement) {
     window.print();
     return;
