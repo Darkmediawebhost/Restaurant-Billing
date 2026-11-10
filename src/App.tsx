@@ -452,7 +452,7 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              {/* <button
                 type="button"
                 onClick={handleDownloadApp}
                 title="Download and open the RestoBill app"
@@ -460,7 +460,7 @@ export default function App() {
               >
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>Open App</span>
-              </button>
+              </button> */}
 
               <button
                 type="button"
