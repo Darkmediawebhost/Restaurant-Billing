@@ -156,6 +156,15 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [details, items, gst, style, templateId, discountType, discountValue, useRandomSuffix]);
 
+  // Desktop download opens ?app=1. Ask the browser to cover the whole screen.
+  useEffect(() => {
+    if (!isAppLaunch() || isIosDevice()) return;
+    if (window.matchMedia('(max-width: 900px)').matches) return;
+    const root = document.documentElement;
+    if (document.fullscreenElement || !root.requestFullscreen) return;
+    root.requestFullscreen().catch(() => {});
+  }, []);
+
   // Listen for PWA install prompt
   useEffect(() => {
     const handler = (e: Event) => {
@@ -310,7 +319,7 @@ export default function App() {
     notify(
       narrow || alreadyApp
         ? 'RestoBill app is open on this screen. To keep it off the browser, use Install app or Add to Home Screen.'
-        : 'RestoBill is open in its own window. A RestoBill.url shortcut was also saved in Downloads.',
+        : 'RestoBill is open full screen. A RestoBill.url shortcut was also saved in Downloads.',
       'success'
     );
   };

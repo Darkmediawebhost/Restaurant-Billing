@@ -32,19 +32,16 @@ export function isInstalledDisplay() {
   return nav.standalone === true;
 }
 
-/** Opens RestoBill in its own window. Must run directly from a click. */
+/** Opens RestoBill in a full-screen window. Must run directly from a click. */
 export function openAppWindow() {
   if (isAppLaunch()) return window;
-  const width = 430;
-  const height = 860;
-  const left = Math.max(0, window.screenX + 48);
-  const top = Math.max(0, window.screenY + 32);
+  const width = Math.floor(window.screen.availWidth || window.screen.width);
+  const height = Math.floor(window.screen.availHeight || window.screen.height);
   const features = [
-    'popup=yes',
     `width=${width}`,
     `height=${height}`,
-    `left=${left}`,
-    `top=${top}`,
+    'left=0',
+    'top=0',
     'menubar=no',
     'toolbar=no',
     'location=no',
@@ -53,7 +50,15 @@ export function openAppWindow() {
     'scrollbars=yes',
   ].join(',');
   const opened = window.open(appUrl(), APP_WINDOW_NAME, features);
-  opened?.focus();
+  if (opened) {
+    try {
+      opened.moveTo(0, 0);
+      opened.resizeTo(width, height);
+    } catch {
+      // Some browsers block moving a script-opened window.
+    }
+    opened.focus();
+  }
   return opened;
 }
 

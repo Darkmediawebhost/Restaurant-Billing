@@ -205,7 +205,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
         <div
           className={`relative bg-neutral-50 text-neutral-900 flex flex-col shadow-2xl transition-all duration-300 ${
             launched
-              ? 'w-full max-w-lg h-full min-h-0 overflow-hidden'
+              ? 'w-full h-full min-h-0 overflow-hidden'
               : showFrame
                 ? 'w-full max-w-[420px] h-[min(860px,calc(100dvh-88px))] rounded-[44px] ring-12 ring-neutral-800 border-[6px] border-neutral-950 overflow-hidden'
                 : 'w-full max-w-xl h-[min(860px,calc(100dvh-88px))] rounded-2xl border border-neutral-300 overflow-hidden'
