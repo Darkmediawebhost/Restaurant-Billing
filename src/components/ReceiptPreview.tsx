@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ZoomIn,
   ZoomOut,
@@ -51,6 +51,34 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
 }) => {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const billRef = useRef<HTMLDivElement>(null);
+  const [fitScale, setFitScale] = useState(1);
+  const [billHeight, setBillHeight] = useState(0);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const bill = billRef.current;
+    if (!frame || !bill) return;
+
+    const measure = () => {
+      const available = Math.max(0, frame.clientWidth - 8);
+      const width = bill.offsetWidth;
+      const height = bill.offsetHeight;
+      const narrow = frame.clientWidth < 820;
+      const scale = !narrow || !width ? 1 : Math.min(1, available / width);
+      setFitScale(scale);
+      setBillHeight(height);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    observer.observe(bill);
+    return () => observer.disconnect();
+  }, [templateId, restaurant.logoUrl, restaurant.footerMessage, items.length]);
+
+  const visualScale = (zoomLevel / 100) * fitScale;
 
   const handleZoomIn = () => setZoomLevel((prev) => Math.min(prev + 10, 150));
   const handleZoomOut = () => setZoomLevel((prev) => Math.max(prev - 10, 60));
@@ -153,14 +181,23 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
       </div>
 
       {/* Preview Viewport Canvas */}
-      <div className="bg-neutral-200/50 p-4 sm:p-6 overflow-auto flex items-start justify-center lg:flex-1 lg:min-h-[320px]">
+      <div
+        ref={frameRef}
+        className="bg-neutral-200/50 p-2 sm:p-6 overflow-auto flex items-start justify-center lg:flex-1 lg:min-h-[320px]"
+      >
         <div
           style={{
-            transform: `scale(${zoomLevel / 100})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.15s ease-out',
+            height: billHeight ? billHeight * visualScale : undefined,
           }}
-          className="relative transition-transform"
+          className="relative w-full"
+        >
+        <div
+          ref={billRef}
+          style={{
+            transform: `translateX(-50%) scale(${visualScale})`,
+            transformOrigin: 'top center',
+          }}
+          className="absolute left-1/2 top-0"
         >
           {/* Printable wrapper (used for jsPDF and print media) */}
           <div
@@ -171,6 +208,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
           >
             <div id="printable-bill">{renderTemplate()}</div>
           </div>
+        </div>
         </div>
       </div>
 

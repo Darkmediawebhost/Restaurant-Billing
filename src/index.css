@@ -23,8 +23,8 @@
     color: #111111;
     background-color: #fafafa;
   }
-  /* iPhone zooms the page when a field is under 16px, which breaks the app clone. */
-  @supports (-webkit-touch-callout: none) {
+  /* Phones zoom the page when a field is under 16px, which breaks the app. */
+  @media (max-width: 820px) {
     input,
     textarea,
     select {

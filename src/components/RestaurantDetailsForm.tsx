@@ -7,7 +7,6 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { RestaurantInfo } from '../types/billing';
 import { validateGSTIN, validateFSSAI } from '../utils/calculations';
@@ -24,6 +23,7 @@ export const RestaurantDetailsForm: React.FC<RestaurantDetailsFormProps> = ({
   onSaveDefault,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [logoError, setLogoError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const gstinValidation = validateGSTIN(restaurant.gstin);
@@ -35,25 +35,47 @@ export const RestaurantDetailsForm: React.FC<RestaurantDetailsFormProps> = ({
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
-    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-      alert('Please upload a valid PNG, JPG, or WebP image.');
+    if (file.size > 20 * 1024 * 1024) {
+      setLogoError('That photo is too large. Choose one under 20MB.');
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Logo size must be under 2MB.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        handleFieldChange('logoUrl', reader.result);
+    setLogoError('');
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxSide = 1200;
+      const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round((img.naturalWidth || 1) * scale));
+      canvas.height = Math.max(1, Math.round((img.naturalHeight || 1) * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        URL.revokeObjectURL(url);
+        setLogoError('Could not read that photo. Try a JPG or PNG.');
+        return;
       }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = pixels.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+      }
+      ctx.putImageData(pixels, 0, 0);
+      URL.revokeObjectURL(url);
+      handleFieldChange('logoUrl', canvas.toDataURL('image/png'));
     };
-    reader.readAsDataURL(file);
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      setLogoError('Could not open that photo. On iPhone, pick a photo from your library.');
+    };
+    img.src = url;
   };
 
   const removeLogo = () => {
@@ -93,75 +115,73 @@ export const RestaurantDetailsForm: React.FC<RestaurantDetailsFormProps> = ({
       {/* Form Body */}
       {isExpanded && (
         <div className="p-4 sm:p-6 border-t border-neutral-100 space-y-4">
-          {/* Restaurant Name & Logo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold text-neutral-800">
-                Restaurant Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={restaurant.name}
-                onChange={(e) => handleFieldChange('name', e.target.value)}
-                placeholder="e.g. The Golden Fork Bistro"
-                className="w-full px-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white transition-all font-medium"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-neutral-800">
+              Restaurant Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={restaurant.name}
+              onChange={(e) => handleFieldChange('name', e.target.value)}
+              placeholder="e.g. The Golden Fork Bistro"
+              className="w-full px-3 py-2.5 text-base sm:text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white transition-all font-medium"
+            />
+          </div>
 
-            {/* Logo Upload */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-neutral-800 flex items-center justify-between">
-                <span>Restaurant Logo</span>
-                {restaurant.logoUrl && (
-                  <button
-                    type="button"
-                    onClick={removeLogo}
-                    className="text-[11px] text-red-600 hover:text-red-800 flex items-center gap-0.5"
-                  >
-                    <X className="w-3 h-3" /> Remove
-                  </button>
-                )}
-              </label>
-
-              {restaurant.logoUrl ? (
-                <div className="flex items-center gap-2 p-1.5 bg-neutral-50 border border-neutral-200 rounded-lg">
-                  <div className="w-10 h-10 bg-white border border-neutral-200 rounded flex items-center justify-center overflow-hidden shrink-0">
-                    <img
-                      src={restaurant.logoUrl}
-                      alt="Logo preview"
-                      className="max-h-full max-w-full object-contain filter grayscale"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="text-xs text-neutral-700 hover:text-neutral-950 font-medium truncate block text-left"
-                    >
-                      Replace Logo
-                    </button>
-                    <span className="text-[10px] text-neutral-400">PNG / JPG / WebP</span>
-                  </div>
-                </div>
-              ) : (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-neutral-800">Restaurant Logo</label>
+              {restaurant.logoUrl && (
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-10 px-3 bg-neutral-50 border border-dashed border-neutral-300 rounded-lg flex items-center justify-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-all"
+                  onClick={removeLogo}
+                  className="text-[11px] text-red-600 hover:text-red-800 flex items-center gap-0.5"
                 >
-                  <Upload className="w-3.5 h-3.5 text-neutral-500" />
-                  <span>Upload Logo</span>
+                  <X className="w-3 h-3" /> Remove
                 </button>
               )}
+            </div>
+            <label className="relative flex min-h-[132px] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-4 text-center active:bg-neutral-100">
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png, image/jpeg, image/webp"
+                accept="image/*"
                 onChange={handleLogoUpload}
-                className="hidden"
+                className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
               />
-            </div>
+              {restaurant.logoUrl ? (
+                <>
+                  <img
+                    src={restaurant.logoUrl}
+                    alt="Restaurant logo"
+                    className="max-h-20 max-w-[220px] object-contain grayscale"
+                  />
+                  <span className="text-xs font-semibold text-neutral-700">Tap to change logo</span>
+                </>
+              ) : (
+                <>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-neutral-800 shadow-sm border border-neutral-200">
+                    <Upload className="w-5 h-5" />
+                  </span>
+                  <span className="text-sm font-semibold text-neutral-900">Upload Logo</span>
+                  <span className="text-[11px] text-neutral-500">Tap a photo. It is saved in black and white.</span>
+                </>
+              )}
+            </label>
+            {logoError && <p className="text-[11px] text-red-600">{logoError}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-neutral-800">Receipt Footer Message</label>
+            <textarea
+              rows={2}
+              value={restaurant.footerMessage}
+              onChange={(e) => handleFieldChange('footerMessage', e.target.value)}
+              placeholder="Thank you for dining with us! Please visit again."
+              className="w-full px-3 py-2.5 text-base sm:text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white transition-all resize-none"
+            />
+            <p className="text-[11px] text-neutral-500">This line prints at the bottom of the bill.</p>
           </div>
 
           {/* Address & Contact Details */}
@@ -290,29 +310,14 @@ export const RestaurantDetailsForm: React.FC<RestaurantDetailsFormProps> = ({
             </div>
           </div>
 
-          {/* Footer Note & Save action */}
-          <div className="pt-2 border-t border-neutral-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <div className="flex-1 space-y-1">
-              <label className="text-xs font-semibold text-neutral-800">
-                Receipt Footer Message
-              </label>
-              <input
-                type="text"
-                value={restaurant.footerMessage}
-                onChange={(e) => handleFieldChange('footerMessage', e.target.value)}
-                placeholder="Thank you for dining with us! Please visit again."
-                className="w-full px-3 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:bg-white transition-all"
-              />
-            </div>
-            <div className="sm:self-end pt-1">
-              <button
-                type="button"
-                onClick={onSaveDefault}
-                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors border border-neutral-200 whitespace-nowrap"
-              >
-                Save as Default
-              </button>
-            </div>
+          <div className="pt-2 border-t border-neutral-100">
+            <button
+              type="button"
+              onClick={onSaveDefault}
+              className="w-full sm:w-auto px-4 py-2.5 text-sm font-semibold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors border border-neutral-200"
+            >
+              Save as Default
+            </button>
           </div>
         </div>
       )}

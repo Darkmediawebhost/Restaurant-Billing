@@ -24,7 +24,7 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
               <img
                 src={restaurant.logoUrl}
                 alt={restaurant.name}
-                className="max-h-12 max-w-[160px] object-contain filter grayscale"
+                className="max-h-16 max-w-[180px] object-contain grayscale"
               />
             </div>
           )}
@@ -139,7 +139,7 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
             </p>
           )}
           <p className="italic pt-2">
-            {style.footerMessage || restaurant.footerMessage || 'Thank you for your patronage!'}
+            {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your patronage!'}
           </p>
         </div>
 

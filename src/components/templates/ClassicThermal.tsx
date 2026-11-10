@@ -42,7 +42,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
             <img
               src={restaurant.logoUrl}
               alt={restaurant.name}
-              className="max-h-12 max-w-[140px] object-contain filter grayscale"
+              className="max-h-16 max-w-[180px] object-contain grayscale"
             />
           </div>
         )}
@@ -218,7 +218,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
       {/* Footer Note */}
       <div className="text-center text-[9px] text-neutral-500 space-y-1">
         <p className="font-medium text-neutral-800">
-          {style.footerMessage || restaurant.footerMessage || 'Thank you for your visit!'}
+          {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your visit!'}
         </p>
         <p className="text-[8px] text-neutral-400">Software by RestoBill</p>
       </div>

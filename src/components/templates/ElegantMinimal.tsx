@@ -23,7 +23,7 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
             <img
               src={restaurant.logoUrl}
               alt={restaurant.name}
-              className="max-h-12 max-w-[160px] object-contain filter grayscale opacity-90"
+              className="max-h-16 max-w-[180px] object-contain grayscale"
             />
           </div>
         )}
@@ -145,7 +145,7 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
       {/* Elegant Footer */}
       <div className="text-center pt-8 border-t border-neutral-100 text-neutral-400 text-[10px] tracking-widest uppercase">
         <p className="text-neutral-600 font-normal">
-          {style.footerMessage || restaurant.footerMessage || 'A pleasure to serve you'}
+          {restaurant.footerMessage?.trim() || style.footerMessage || 'A pleasure to serve you'}
         </p>
         <p className="mt-1 text-[8px] text-neutral-300">RestoBill Bespoke Terminal</p>
       </div>

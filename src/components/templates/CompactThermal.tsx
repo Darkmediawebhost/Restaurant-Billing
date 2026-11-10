@@ -26,7 +26,7 @@ export const CompactThermal: React.FC<TemplateProps> = ({
             <img
               src={restaurant.logoUrl}
               alt={restaurant.name}
-              className="max-h-8 max-w-[100px] object-contain filter grayscale"
+              className="max-h-12 max-w-[140px] object-contain grayscale"
             />
           </div>
         )}
@@ -135,7 +135,7 @@ export const CompactThermal: React.FC<TemplateProps> = ({
 
       {/* Footer */}
       <div className="text-center text-[8px] text-neutral-500 space-y-0.5">
-        <p>{style.footerMessage || restaurant.footerMessage || 'Thank You!'}</p>
+        <p>{restaurant.footerMessage?.trim() || style.footerMessage || 'Thank You!'}</p>
         {style.showFssai && restaurant.fssai && (
           <p className="text-[7.5px]">Lic: {restaurant.fssai}</p>
         )}

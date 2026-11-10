@@ -24,7 +24,7 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
               <img
                 src={restaurant.logoUrl}
                 alt={restaurant.name}
-                className="max-h-14 max-w-[180px] object-contain filter grayscale"
+                className="max-h-16 max-w-[200px] object-contain grayscale"
               />
             </div>
           )}
@@ -252,7 +252,7 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
       <div className="border-t border-neutral-200 pt-6 flex justify-between items-end text-neutral-600 text-xs">
         <div>
           <p className="font-semibold text-neutral-900">
-            {style.footerMessage || restaurant.footerMessage || 'Thank you for dining with us!'}
+            {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for dining with us!'}
           </p>
           <p className="text-[10px] text-neutral-400 mt-1">Authorized Billing Signature</p>
         </div>
