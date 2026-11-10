@@ -1,0 +1,6 @@
+{
+  "name": "RestoBill - Restaurant & Food Bill Generator",
+  "description": "Professional restaurant and food billing system with dynamic menu items, customizable 58mm/80mm thermal and A4/A5 invoice templates, GST intrastate/interstate calculations, real-time receipt preview, instant PDF generation, and bill history.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
