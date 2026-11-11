@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ZoomIn,
   ZoomOut,
@@ -76,7 +77,19 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
     observer.observe(frame);
     observer.observe(bill);
     return () => observer.disconnect();
-  }, [templateId, restaurant.logoUrl, restaurant.footerMessage, items.length]);
+  }, [
+    templateId,
+    style.layoutOrder,
+    style.fontSize,
+    style.headerAlignment,
+    style.dividerStyle,
+    restaurant.logoUrl,
+    restaurant.footerMessage,
+    restaurant.name,
+    items,
+    details.billNumber,
+    calculated.grandTotal,
+  ]);
 
   const visualScale = (zoomLevel / 100) * fitScale;
 
@@ -199,14 +212,12 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
           }}
           className="absolute left-1/2 top-0"
         >
-          {/* Printable wrapper (used for jsPDF and print media) */}
           <div
-            id="print-target"
             className={`bg-white text-neutral-900 shadow-md transition-all ${
               isThermal ? 'border-t-4 border-neutral-900' : 'rounded-sm border border-neutral-300'
             }`}
           >
-            <div id="printable-bill">{renderTemplate()}</div>
+            {renderTemplate()}
           </div>
         </div>
         </div>
@@ -246,6 +257,25 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
           </button>
         )}
       </div>
+      {createPortal(
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            zIndex: -1,
+            width: 'max-content',
+            pointerEvents: 'none',
+            background: '#ffffff',
+          }}
+        >
+          <div id="printable-bill" style={{ width: 'max-content', background: '#ffffff' }}>
+            {renderTemplate()}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

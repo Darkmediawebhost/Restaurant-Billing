@@ -29,6 +29,8 @@ import { ItemTable } from './components/ItemTable';
 import { GSTSettings } from './components/GSTSettings';
 import { BillSummary } from './components/BillSummary';
 import { BillStyleSelector } from './components/BillStyleSelector';
+import { LayoutMover } from './components/LayoutMover';
+
 import { TemplateSelector } from './components/TemplateSelector';
 import { ReceiptPreview } from './components/ReceiptPreview';
 import { ToastContainer, ToastMessage } from './components/Toast';
@@ -556,6 +558,7 @@ export default function App() {
 
               {/* 6. Bill Style Customization */}
               <BillStyleSelector style={style} onChange={setStyle} />
+              <LayoutMover style={style} onChange={setStyle} />
 
               {/* 7. Template Selection */}
               <TemplateSelector

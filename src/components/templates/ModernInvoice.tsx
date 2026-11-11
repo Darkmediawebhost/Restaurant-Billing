@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { getFontSizeScale, getVariantStyles } from './templateUtils';
+import { OrderedBlocks } from './OrderedBlocks';
 
 export const ModernInvoice: React.FC<TemplateProps> = ({
   restaurant,
@@ -16,18 +17,23 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
 
   return (
     <div className="w-[520px] bg-white text-neutral-900 p-8 shadow-sm font-sans text-xs select-none">
-      {/* Top Header Card */}
+      <OrderedBlocks
+        order={style.layoutOrder}
+        blocks={{
+          logo: (
+            <div className="mb-4">
+              {style.showLogo && restaurant.logoUrl && (
+                <img
+                  src={restaurant.logoUrl}
+                  alt={restaurant.name}
+                  className="block h-16 w-auto max-w-[180px] object-contain"
+                />
+              )}
+            </div>
+          ),
+          header: (
       <div className="flex items-start justify-between border-b border-neutral-200 pb-5 mb-5">
         <div className="max-w-[65%]">
-          {style.showLogo && restaurant.logoUrl && (
-            <div className="mb-3">
-              <img
-                src={restaurant.logoUrl}
-                alt={restaurant.name}
-                className="block h-16 w-auto max-w-[180px] object-contain"
-              />
-            </div>
-          )}
           <h1 className={`text-xl font-bold tracking-tight text-neutral-950 ${variant.headerWeight}`}>
             {restaurant.name || 'Restaurant Name'}
           </h1>
@@ -71,7 +77,9 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Bill To Customer Section */}
+          ),
+          details: (
+      <>
       {(details.customerName || details.customerPhone || details.cashier) && (
         <div className="grid grid-cols-2 gap-4 bg-neutral-50 p-3 rounded-lg mb-5 text-[11px]">
           <div>
@@ -97,8 +105,9 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
           </div>
         </div>
       )}
-
-      {/* Modern Items Table */}
+      </>
+          ),
+          items: (
       <table className="w-full text-left text-xs mb-5">
         <thead>
           <tr className="border-b border-neutral-200 text-neutral-500 text-[10px] uppercase font-semibold tracking-wider">
@@ -126,7 +135,8 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
         </tbody>
       </table>
 
-      {/* Calculations & Totals Grid */}
+          ),
+          totals: (
       <div className="border-t border-neutral-200 pt-4 flex justify-between items-start">
         <div className="max-w-[48%] text-[10px] text-neutral-500 space-y-1">
           <p className="font-medium text-neutral-800">
@@ -138,9 +148,6 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
               {calculated.isTaxInclusive ? ' (Tax Inclusive)' : ' (Tax Exclusive)'}
             </p>
           )}
-          <p className="italic pt-2">
-            {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your patronage!'}
-          </p>
         </div>
 
         <div className="w-[45%] space-y-1.5 text-xs">
@@ -194,6 +201,14 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
           </div>
         </div>
       </div>
+          ),
+          footer: (
+      <p className="italic pt-4 text-[10px] text-neutral-500">
+        {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your patronage!'}
+      </p>
+          ),
+        }}
+      />
     </div>
   );
 };

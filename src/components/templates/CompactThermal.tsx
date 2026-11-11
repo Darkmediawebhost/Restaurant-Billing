@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { getDividerClass, getFontSizeScale, getVariantStyles } from './templateUtils';
+import { OrderedBlocks } from './OrderedBlocks';
 
 export const CompactThermal: React.FC<TemplateProps> = ({
   restaurant,
@@ -19,17 +20,23 @@ export const CompactThermal: React.FC<TemplateProps> = ({
 
   return (
     <div className="w-[230px] bg-white text-neutral-900 p-3 font-mono text-[10px] leading-tight select-none">
-      {/* Top Header */}
+      <OrderedBlocks
+        order={style.layoutOrder}
+        blocks={{
+          logo: (
+            <div className={`mb-1 ${headerAlignClass}`}>
+              {style.showLogo && restaurant.logoUrl && (
+                <img
+                  src={restaurant.logoUrl}
+                  alt={restaurant.name}
+                  className="inline-block h-12 w-auto max-w-[140px] object-contain"
+                />
+              )}
+            </div>
+          ),
+          header: (
+      <>
       <div className={`mb-2 ${headerAlignClass}`}>
-        {style.showLogo && restaurant.logoUrl && (
-          <div className="flex justify-center mb-1">
-            <img
-              src={restaurant.logoUrl}
-              alt={restaurant.name}
-              className="block h-12 w-auto max-w-[140px] object-contain"
-            />
-          </div>
-        )}
         <h1 className={`text-sm font-bold ${variant.headerWeight} tracking-tight`}>
           {restaurant.name || 'RESTAURANT'}
         </h1>
@@ -47,9 +54,11 @@ export const CompactThermal: React.FC<TemplateProps> = ({
       </div>
 
       <div className={`${divider} my-1.5`}></div>
-
-      {/* Bill Meta */}
-      <div className="space-y-0.5 text-[9px]">
+      </>
+          ),
+          details: (
+      <>
+      <div className="space-y-0.5 text-[9px] mb-1">
         <div className="flex justify-between">
           <span>#{details.billNumber}</span>
           <span>{details.date}</span>
@@ -66,9 +75,11 @@ export const CompactThermal: React.FC<TemplateProps> = ({
       </div>
 
       <div className={`${divider} my-1.5`}></div>
-
-      {/* Items list (optimized for narrow 58mm roll) */}
-      <div className="space-y-1 text-[9px]">
+      </>
+          ),
+          items: (
+      <>
+      <div className="space-y-1 text-[9px] mb-1">
         <div className="flex justify-between font-bold border-b border-neutral-300 pb-0.5 text-[8.5px]">
           <span className="w-[55%]">ITEM</span>
           <span className="w-[15%] text-center">QTY</span>
@@ -91,9 +102,11 @@ export const CompactThermal: React.FC<TemplateProps> = ({
       </div>
 
       <div className={`${divider} my-1.5`}></div>
-
-      {/* Summary */}
-      <div className="space-y-0.5 text-[9px]">
+      </>
+          ),
+          totals: (
+      <>
+      <div className="space-y-0.5 text-[9px] mb-1">
         <div className="flex justify-between">
           <span>Qty: {calculated.totalQuantity}</span>
           <span>Sub: {formatINR(calculated.grossAmount)}</span>
@@ -132,14 +145,18 @@ export const CompactThermal: React.FC<TemplateProps> = ({
       </div>
 
       <div className={`${divider} my-2`}></div>
-
-      {/* Footer */}
+      </>
+          ),
+          footer: (
       <div className="text-center text-[8px] text-neutral-500 space-y-0.5">
         <p>{restaurant.footerMessage?.trim() || style.footerMessage || 'Thank You!'}</p>
         {style.showFssai && restaurant.fssai && (
           <p className="text-[7.5px]">Lic: {restaurant.fssai}</p>
         )}
       </div>
+          ),
+        }}
+      />
     </div>
   );
 };

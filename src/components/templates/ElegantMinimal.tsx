@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { getFontSizeScale, getVariantStyles } from './templateUtils';
+import { OrderedBlocks } from './OrderedBlocks';
 
 export const ElegantMinimal: React.FC<TemplateProps> = ({
   restaurant,
@@ -16,17 +17,22 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
 
   return (
     <div className="w-[680px] bg-white text-neutral-900 p-12 font-sans text-xs select-none">
-      {/* Refined Minimalist Header */}
+      <OrderedBlocks
+        order={style.layoutOrder}
+        blocks={{
+          logo: (
+            <div className="flex justify-center mb-4">
+              {style.showLogo && restaurant.logoUrl && (
+                <img
+                  src={restaurant.logoUrl}
+                  alt={restaurant.name}
+                  className="block h-16 w-auto max-w-[180px] object-contain"
+                />
+              )}
+            </div>
+          ),
+          header: (
       <div className="text-center mb-8 pb-6 border-b border-neutral-100">
-        {style.showLogo && restaurant.logoUrl && (
-          <div className="flex justify-center mb-4">
-            <img
-              src={restaurant.logoUrl}
-              alt={restaurant.name}
-              className="block h-16 w-auto max-w-[180px] object-contain"
-            />
-          </div>
-        )}
         <h1 className="text-2xl font-light tracking-[0.25em] text-neutral-900 uppercase">
           {restaurant.name || 'Restaurant'}
         </h1>
@@ -42,7 +48,8 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Bill Meta in 4-column minimal hairline strip */}
+          ),
+          details: (
       <div className="grid grid-cols-4 gap-4 py-3 border-y border-neutral-100 mb-8 text-[11px]">
         <div>
           <span className="text-[9px] uppercase tracking-widest text-neutral-400 block mb-0.5">
@@ -77,7 +84,8 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Elegant Clean Table */}
+          ),
+          items: (
       <table className="w-full text-left text-xs mb-8">
         <thead>
           <tr className="border-b border-neutral-900 text-[10px] uppercase tracking-[0.15em] text-neutral-500 font-medium">
@@ -103,7 +111,8 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
         </tbody>
       </table>
 
-      {/* Minimalist Summary */}
+          ),
+          totals: (
       <div className="flex justify-end mb-10">
         <div className="w-72 space-y-2 text-xs">
           <div className="flex justify-between text-neutral-500">
@@ -142,13 +151,17 @@ export const ElegantMinimal: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Elegant Footer */}
+          ),
+          footer: (
       <div className="text-center pt-8 border-t border-neutral-100 text-neutral-400 text-[10px] tracking-widest uppercase">
         <p className="text-neutral-600 font-normal">
           {restaurant.footerMessage?.trim() || style.footerMessage || 'A pleasure to serve you'}
         </p>
         <p className="mt-1 text-[8px] text-neutral-300">RestoBill Bespoke Terminal</p>
       </div>
+          ),
+        }}
+      />
     </div>
   );
 };

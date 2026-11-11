@@ -15,6 +15,8 @@ import { ItemTable } from './ItemTable';
 import { GSTSettings } from './GSTSettings';
 import { BillSummary } from './BillSummary';
 import { BillStyleSelector } from './BillStyleSelector';
+import { LayoutMover } from './LayoutMover';
+
 import { TemplateSelector } from './TemplateSelector';
 import { ReceiptPreview } from './ReceiptPreview';
 import { isIosDevice } from '../utils/appLaunch';
@@ -389,6 +391,7 @@ export const MobileAppClone: React.FC<MobileAppCloneProps> = ({
               <div className="space-y-4 animate-in fade-in duration-150">
                 <TemplateSelector selectedTemplate={templateId} onSelectTemplate={setTemplateId} />
                 <BillStyleSelector style={style} onChange={setStyle} />
+                <LayoutMover style={style} onChange={setStyle} />
               </div>
             )}
           </div>

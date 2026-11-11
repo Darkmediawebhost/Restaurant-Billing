@@ -64,6 +64,17 @@ export interface GSTConfig {
   taxTreatment: TaxTreatment; // exclusive or inclusive
 }
 
+export type LayoutBlockId = 'logo' | 'header' | 'details' | 'items' | 'totals' | 'footer';
+
+export const DEFAULT_LAYOUT_ORDER: LayoutBlockId[] = [
+  'logo',
+  'header',
+  'details',
+  'items',
+  'totals',
+  'footer',
+];
+
 export interface BillStyle {
   styleVariant: StyleVariant;
   fontSize: FontSizeOption;
@@ -75,6 +86,7 @@ export interface BillStyle {
   showCashier: boolean;
   showBillTime: boolean;
   footerMessage?: string;
+  layoutOrder?: LayoutBlockId[];
 }
 
 export interface BillCalculations {

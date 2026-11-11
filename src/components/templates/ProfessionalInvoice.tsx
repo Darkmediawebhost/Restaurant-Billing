@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { getFontSizeScale, getVariantStyles } from './templateUtils';
+import { OrderedBlocks } from './OrderedBlocks';
 
 export const ProfessionalInvoice: React.FC<TemplateProps> = ({
   restaurant,
@@ -16,18 +17,23 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
 
   return (
     <div className="w-[680px] bg-white text-neutral-900 p-10 font-sans text-xs select-none">
-      {/* Formal Header Banner */}
+      <OrderedBlocks
+        order={style.layoutOrder}
+        blocks={{
+          logo: (
+            <div className="mb-4">
+              {style.showLogo && restaurant.logoUrl && (
+                <img
+                  src={restaurant.logoUrl}
+                  alt={restaurant.name}
+                  className="block h-16 w-auto max-w-[200px] object-contain"
+                />
+              )}
+            </div>
+          ),
+          header: (
       <div className="flex justify-between items-start border-b-2 border-neutral-900 pb-6 mb-6">
         <div>
-          {style.showLogo && restaurant.logoUrl && (
-            <div className="mb-3">
-              <img
-                src={restaurant.logoUrl}
-                alt={restaurant.name}
-                className="block h-16 w-auto max-w-[200px] object-contain"
-              />
-            </div>
-          )}
           <h1 className="text-2xl font-black tracking-tight text-neutral-950 uppercase">
             {restaurant.name || 'RESTAURANT NAME'}
           </h1>
@@ -77,7 +83,8 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Customer & Tax Details Row */}
+          ),
+          details: (
       <div className="grid grid-cols-2 gap-6 mb-6 p-4 bg-neutral-50 rounded border border-neutral-200 text-xs">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
@@ -115,7 +122,8 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Formal Detailed Items Table */}
+          ),
+          items: (
       <table className="w-full text-left text-xs mb-6">
         <thead>
           <tr className="bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-wider">
@@ -145,7 +153,8 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
         </tbody>
       </table>
 
-      {/* Calculation & Tax Breakdown Section */}
+          ),
+          totals: (
       <div className="flex justify-between items-start gap-8 mb-8">
         {/* Left side: Tax Breakdown Matrix */}
         <div className="w-[55%]">
@@ -248,7 +257,8 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
         </div>
       </div>
 
-      {/* Signature & Footer */}
+          ),
+          footer: (
       <div className="border-t border-neutral-200 pt-6 flex justify-between items-end text-neutral-600 text-xs">
         <div>
           <p className="font-semibold text-neutral-900">
@@ -261,6 +271,9 @@ export const ProfessionalInvoice: React.FC<TemplateProps> = ({
           <span className="text-[10px] text-neutral-500">Authorized Signatory</span>
         </div>
       </div>
+          ),
+        }}
+      />
     </div>
   );
 };

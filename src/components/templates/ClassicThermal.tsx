@@ -9,6 +9,7 @@ import {
 } from '../../types/billing';
 import { formatINR } from '../../utils/calculations';
 import { getDividerClass, getFontSizeScale, getVariantStyles } from './templateUtils';
+import { OrderedBlocks } from './OrderedBlocks';
 
 export interface TemplateProps {
   restaurant: RestaurantInfo;
@@ -35,17 +36,23 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
 
   return (
     <div className="w-[320px] bg-white text-neutral-900 p-5 font-mono text-[11px] leading-tight select-none">
-      {/* Top Header */}
+      <OrderedBlocks
+        order={style.layoutOrder}
+        blocks={{
+          logo: (
+            <div className={`mb-2 ${headerAlignClass}`}>
+              {style.showLogo && restaurant.logoUrl && (
+                <img
+                  src={restaurant.logoUrl}
+                  alt={restaurant.name}
+                  className="inline-block h-16 w-auto max-w-[180px] object-contain"
+                />
+              )}
+            </div>
+          ),
+          header: (
+      <>
       <div className={`mb-3 ${headerAlignClass}`}>
-        {style.showLogo && restaurant.logoUrl && (
-          <div className="flex justify-center mb-2">
-            <img
-              src={restaurant.logoUrl}
-              alt={restaurant.name}
-              className="block h-16 w-auto max-w-[180px] object-contain"
-            />
-          </div>
-        )}
         <h1 className={`${fontScale.title} ${variant.headerWeight} tracking-tight`}>
           {restaurant.name || 'RESTAURANT NAME'}
         </h1>
@@ -68,9 +75,11 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
       </div>
 
       <div className={`${divider} my-2`}></div>
-
-      {/* Bill Meta Data */}
-      <div className="space-y-0.5 text-[10px]">
+      </>
+          ),
+          details: (
+      <>
+      <div className="space-y-0.5 text-[10px] mb-2">
         <div className="flex justify-between">
           <span className="font-semibold">Bill No:</span>
           <span className="font-bold">{details.billNumber}</span>
@@ -110,9 +119,11 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
       </div>
 
       <div className={`${divider} my-2`}></div>
-
-      {/* Items Table */}
-      <table className="w-full text-[10px]">
+      </>
+          ),
+          items: (
+      <>
+      <table className="w-full text-[10px] mb-2">
         <thead>
           <tr className={`${variant.tableHeadBg} border-b border-neutral-300`}>
             <th className="py-1 text-left font-bold w-[50%]">ITEM</th>
@@ -142,9 +153,11 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
       </table>
 
       <div className={`${divider} my-2`}></div>
-
-      {/* Calculations Summary */}
-      <div className="space-y-1 text-[10px]">
+      </>
+          ),
+          totals: (
+      <>
+      <div className="space-y-1 text-[10px] mb-2">
         <div className="flex justify-between">
           <span>Total Qty:</span>
           <span className="font-semibold tabular-nums">{calculated.totalQuantity}</span>
@@ -214,14 +227,18 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
         </span>
       </div>
       <div className={`${divider} my-3`}></div>
-
-      {/* Footer Note */}
+      </>
+          ),
+          footer: (
       <div className="text-center text-[9px] text-neutral-500 space-y-1">
         <p className="font-medium text-neutral-800">
           {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your visit!'}
         </p>
         <p className="text-[8px] text-neutral-400">Software by RestoBill</p>
       </div>
+          ),
+        }}
+      />
     </div>
   );
 };

@@ -2,6 +2,12 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import { TemplateId } from '../types/billing';
 
+const CSS_PX_PER_INCH = 96;
+
+function cssPxToMm(px: number): number {
+  return (px * 25.4) / CSS_PX_PER_INCH;
+}
+
 interface GeneratePDFOptions {
   elementId: string;
   billNumber: string;
@@ -25,139 +31,89 @@ function downloadBlob(blob: Blob, filename: string) {
   }, 1000);
 }
 
+function billSizeMm(element: HTMLElement): { widthMm: number; heightMm: number } {
+  const widthPx = element.offsetWidth || element.scrollWidth;
+  const heightPx = element.offsetHeight || element.scrollHeight;
+  if (!widthPx || !heightPx) {
+    throw new Error('The bill has no size yet. Open Live Bill Preview and try again.');
+  }
+  return {
+    widthMm: Math.max(1, cssPxToMm(widthPx)),
+    heightMm: Math.max(1, cssPxToMm(heightPx)),
+  };
+}
+
 /**
- * Generates and downloads a high-resolution PDF for the specified bill element
+ * Rasterizes the natural-size bill. The preview may be zoomed; this node is not.
+ */
+async function captureBill(element: HTMLElement): Promise<HTMLCanvasElement> {
+  const width = element.offsetWidth || element.scrollWidth;
+  const height = element.offsetHeight || element.scrollHeight;
+  return html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width,
+    height,
+    windowWidth: width,
+    windowHeight: height,
+    imageSmoothing: true,
+    imageSmoothingQuality: 'high',
+  });
+}
+
+/**
+ * Generates and downloads a PDF that matches the live bill, one page, same proportions.
  */
 export async function generateBillPDF({
   elementId,
   billNumber,
-  templateId,
 }: GeneratePDFOptions): Promise<void> {
   const sourceElement = document.getElementById(elementId);
   if (!sourceElement) {
     throw new Error('Receipt content element not found in DOM');
   }
 
-  // Clone element into a clean detached container with NO CSS transforms
-  const clone = sourceElement.cloneNode(true) as HTMLElement;
-  clone.id = `pdf-export-${Date.now()}`;
-  clone.style.transform = 'none';
-  clone.style.margin = '0';
-  clone.style.position = 'fixed';
-  clone.style.left = '-9999px';
-  clone.style.top = '0';
-  clone.style.zIndex = '-9999';
-  clone.style.background = '#ffffff';
-  clone.style.boxShadow = 'none';
-  clone.style.border = 'none';
-
-  document.body.appendChild(clone);
-
-  let canvas: HTMLCanvasElement;
-  try {
-    canvas = await html2canvas(clone, {
-      scale: 2.0, // High-DPI crisp rasterization
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: clone.scrollWidth || sourceElement.scrollWidth || 800,
-    });
-  } finally {
-    // Always clean up clone from DOM
-    if (document.body.contains(clone)) {
-      document.body.removeChild(clone);
-    }
-  }
-
+  const { widthMm, heightMm } = billSizeMm(sourceElement);
+  const canvas = await captureBill(sourceElement);
   const imgData = canvas.toDataURL('image/png', 1.0);
   const safeBillNumber = billNumber.replace(/[^a-zA-Z0-9_-]/g, '_');
   const filename = `Restaurant_Bill_${safeBillNumber}.pdf`;
+  const orientation = heightMm >= widthMm ? 'portrait' : 'landscape';
 
-  // Compute PDF dimensions based on template
-  if (templateId === 'compact_thermal_58mm') {
-    const widthMm = 58;
-    const heightMm = Math.max(60, (canvas.height * widthMm) / canvas.width);
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [widthMm, heightMm],
-    });
-    pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm, undefined, 'FAST');
-    const blob = pdf.output('blob');
-    downloadBlob(blob, filename);
-  } else if (templateId === 'classic_thermal_80mm') {
-    const widthMm = 80;
-    const heightMm = Math.max(80, (canvas.height * widthMm) / canvas.width);
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [widthMm, heightMm],
-    });
-    pdf.addImage(imgData, 'PNG', 0, 0, widthMm, heightMm, undefined, 'FAST');
-    const blob = pdf.output('blob');
-    downloadBlob(blob, filename);
-  } else if (templateId === 'modern_invoice_a5') {
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a5',
-    });
-    const pageWidthMm = 148;
-    const pageHeightMm = 210;
-    const imgHeightMm = (canvas.height * pageWidthMm) / canvas.width;
+  const pdf = new jsPDF({
+    orientation,
+    unit: 'mm',
+    format: [widthMm, heightMm],
+  });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'SLOW');
+  downloadBlob(pdf.output('blob'), filename);
+}
 
-    if (imgHeightMm <= pageHeightMm) {
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, imgHeightMm, undefined, 'FAST');
-    } else {
-      let heightLeft = imgHeightMm;
-      let position = 0;
-      pdf.addImage(imgData, 'PNG', 0, position, pageWidthMm, imgHeightMm, undefined, 'FAST');
-      heightLeft -= pageHeightMm;
-
-      while (heightLeft > 0) {
-        position = position - pageHeightMm;
-        pdf.addPage('a5', 'portrait');
-        pdf.addImage(imgData, 'PNG', 0, position, pageWidthMm, imgHeightMm, undefined, 'FAST');
-        heightLeft -= pageHeightMm;
+function collectDocumentStyles(): string {
+  const tags = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map(
+    (el) => el.outerHTML
+  );
+  const adopted = Array.from(document.adoptedStyleSheets || [])
+    .map((sheet) => {
+      try {
+        return `<style>${Array.from(sheet.cssRules)
+          .map((rule) => rule.cssText)
+          .join('\n')}</style>`;
+      } catch {
+        return '';
       }
-    }
-    const blob = pdf.output('blob');
-    downloadBlob(blob, filename);
-  } else {
-    // A4 for professional_invoice_a4 and elegant_minimal_a4
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-    const pageWidthMm = 210;
-    const pageHeightMm = 297;
-    const imgHeightMm = (canvas.height * pageWidthMm) / canvas.width;
-
-    if (imgHeightMm <= pageHeightMm) {
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, imgHeightMm, undefined, 'FAST');
-    } else {
-      let heightLeft = imgHeightMm;
-      let position = 0;
-      pdf.addImage(imgData, 'PNG', 0, position, pageWidthMm, imgHeightMm, undefined, 'FAST');
-      heightLeft -= pageHeightMm;
-
-      while (heightLeft > 0) {
-        position = position - pageHeightMm;
-        pdf.addPage('a4', 'portrait');
-        pdf.addImage(imgData, 'PNG', 0, position, pageWidthMm, imgHeightMm, undefined, 'FAST');
-        heightLeft -= pageHeightMm;
-      }
-    }
-    const blob = pdf.output('blob');
-    downloadBlob(blob, filename);
-  }
+    })
+    .filter(Boolean);
+  return [...tags, ...adopted].join('\n');
 }
 
 /**
- * Dedicated thermal and invoice print engine that opens a clean isolated print
- * iframe so surrounding UI/buttons never clutter the printed page.
+ * Prints the same full-size bill shown in the live preview, without the app UI.
  */
 export function printReceiptIsolated(elementId: string, title = 'Restaurant Bill'): void {
   const sourceElement = document.getElementById(elementId);
@@ -166,78 +122,66 @@ export function printReceiptIsolated(elementId: string, title = 'Restaurant Bill
     return;
   }
 
-  // Create invisible iframe for clean print
+  const { widthMm, heightMm } = billSizeMm(sourceElement);
+  const safeTitle = title.replace(/[<>&]/g, '');
   const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0px';
-  iframe.style.height = '0px';
-  iframe.style.border = 'none';
-
+  iframe.setAttribute('title', safeTitle);
+  iframe.style.cssText = `position:fixed;left:0;top:0;width:${sourceElement.offsetWidth}px;height:${sourceElement.offsetHeight}px;border:0;background:#fff;z-index:2147483646;`;
   document.body.appendChild(iframe);
 
   const doc = iframe.contentWindow?.document;
-  if (!doc) {
+  const win = iframe.contentWindow;
+  if (!doc || !win) {
+    iframe.remove();
     window.print();
-    document.body.removeChild(iframe);
     return;
   }
 
-  // Collect active style links & tags from main document
-  const headStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
-    .map((el) => el.outerHTML)
-    .join('\n');
+  const cleanup = () => {
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  };
 
   doc.open();
-  doc.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>${title}</title>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-        ${headStyles}
-        <style>
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          body {
-            margin: 0;
-            padding: 8px;
-            background: #ffffff !important;
-            display: flex;
-            justify-content: center;
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-          }
-          @page {
-            margin: 3mm;
-            size: auto;
-          }
-        </style>
-      </head>
-      <body>
-        <div id="print-wrapper">
-          ${sourceElement.outerHTML}
-        </div>
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.focus();
-              window.print();
-            }, 250);
-          };
-        </script>
-      </body>
-    </html>
-  `);
+  doc.write(`<!DOCTYPE html>
+<html>
+  <head>
+    <title>${safeTitle}</title>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    ${collectDocumentStyles()}
+    <style>
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      html, body { margin: 0 !important; padding: 0 !important; background: #ffffff !important; }
+      html body #printable-bill,
+      html body #printable-bill * { visibility: visible !important; }
+      html body #printable-bill {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+      }
+      @page { size: ${widthMm}mm ${heightMm}mm; margin: 0; }
+    </style>
+  </head>
+  <body>${sourceElement.outerHTML}</body>
+</html>`);
   doc.close();
 
-  // Remove iframe after print dialogue triggered
-  setTimeout(() => {
-    if (document.body.contains(iframe)) {
-      document.body.removeChild(iframe);
-    }
-  }, 3000);
+  const printWhenReady = () => {
+    const fonts = doc.fonts?.ready ?? Promise.resolve();
+    fonts.then(() => {
+      win.focus();
+      win.print();
+    });
+  };
+
+  if (doc.readyState === 'complete') printWhenReady();
+  else iframe.addEventListener('load', printWhenReady, { once: true });
+
+  win.addEventListener('afterprint', cleanup, { once: true });
+  window.setTimeout(cleanup, 60000);
 }
