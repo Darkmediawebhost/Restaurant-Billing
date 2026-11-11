@@ -6,6 +6,7 @@ import {
   GSTConfig,
   BillStyle,
   TemplateId,
+  isTemplateId,
   DiscountType,
 } from './types/billing';
 import { calculateBill } from './utils/calculations';
@@ -135,7 +136,7 @@ export default function App() {
   // 8. Template State
   const [templateId, setTemplateId] = useState<TemplateId>(() => {
     const draft = getStoredDraft();
-    return draft?.templateId || 'classic_thermal_80mm';
+    return isTemplateId(draft?.templateId) ? draft.templateId : 'classic_thermal_80mm';
   });
 
   // Calculations derived with precision

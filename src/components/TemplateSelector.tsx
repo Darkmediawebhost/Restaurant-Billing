@@ -22,6 +22,38 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: TemplateOption[] = [
     {
+      id: 'shop_slip_80mm',
+      name: 'Shop Slip',
+      paperType: '80mm Roll',
+      widthLabel: 'Counter POS',
+      description: 'Counter slip: shop lines, Name, Date with Dine In, then Item, Qty, Price and Amount.',
+      isThermal: true,
+    },
+    {
+      id: 'simple_list_80mm',
+      name: 'Simple List',
+      paperType: '80mm Roll',
+      widthLabel: 'Easy bill',
+      description: 'A short list. Quantity and item on the left, amount on the right.',
+      isThermal: true,
+    },
+    {
+      id: 'cash_memo_80mm',
+      name: 'Cash Memo',
+      paperType: '80mm Roll',
+      widthLabel: 'Memo',
+      description: 'A plain cash memo with name, date, item, qty and amount.',
+      isThermal: true,
+    },
+    {
+      id: 'short_slip_58mm',
+      name: 'Short Slip',
+      paperType: '58mm Roll',
+      widthLabel: 'Small roll',
+      description: 'The smallest bill. Name, a few item lines, and the total.',
+      isThermal: true,
+    },
+    {
       id: 'classic_thermal_80mm',
       name: 'Classic Thermal',
       paperType: '80mm Roll',
@@ -42,23 +74,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       name: 'Modern Invoice',
       paperType: 'A5 Sheet',
       widthLabel: '148 × 210 mm',
-      description: 'Contemporary format with clean header blocks and generous whitespace.',
-      isThermal: false,
-    },
-    {
-      id: 'professional_invoice_a4',
-      name: 'Professional Invoice',
-      paperType: 'A4 Sheet',
-      widthLabel: '210 × 297 mm',
-      description: 'Formal corporate invoice with comprehensive GST summary & signature block.',
-      isThermal: false,
-    },
-    {
-      id: 'elegant_minimal_a4',
-      name: 'Elegant Minimal',
-      paperType: 'A4 Sheet',
-      widthLabel: '210 × 297 mm',
-      description: 'Sophisticated fine-dining presentation with hairline rules & airy luxury type.',
+      description: 'A clean invoice with a little more space around the items.',
       isThermal: false,
     },
   ];

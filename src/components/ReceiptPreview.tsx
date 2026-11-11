@@ -23,8 +23,10 @@ import {
 import { ClassicThermal } from './templates/ClassicThermal';
 import { CompactThermal } from './templates/CompactThermal';
 import { ModernInvoice } from './templates/ModernInvoice';
-import { ProfessionalInvoice } from './templates/ProfessionalInvoice';
-import { ElegantMinimal } from './templates/ElegantMinimal';
+import { ShopSlip } from './templates/ShopSlip';
+import { SimpleList } from './templates/SimpleList';
+import { CashMemo } from './templates/CashMemo';
+import { ShortSlip } from './templates/ShortSlip';
 import { generateBillPDF, printReceiptIsolated } from '../utils/pdfGenerator';
 
 interface ReceiptPreviewProps {
@@ -134,20 +136,23 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
     switch (templateId) {
       case 'compact_thermal_58mm':
         return <CompactThermal {...props} />;
+      case 'shop_slip_80mm':
+        return <ShopSlip {...props} />;
+      case 'simple_list_80mm':
+        return <SimpleList {...props} />;
+      case 'cash_memo_80mm':
+        return <CashMemo {...props} />;
+      case 'short_slip_58mm':
+        return <ShortSlip {...props} />;
       case 'modern_invoice_a5':
         return <ModernInvoice {...props} />;
-      case 'professional_invoice_a4':
-        return <ProfessionalInvoice {...props} />;
-      case 'elegant_minimal_a4':
-        return <ElegantMinimal {...props} />;
       case 'classic_thermal_80mm':
       default:
         return <ClassicThermal {...props} />;
     }
   };
 
-  const isThermal =
-    templateId === 'classic_thermal_80mm' || templateId === 'compact_thermal_58mm';
+  const isThermal = templateId !== 'modern_invoice_a5';
 
   return (
     <div className="bg-white border border-neutral-200 rounded-xl shadow-xs flex flex-col lg:max-h-[calc(100vh-6rem)] lg:overflow-hidden">

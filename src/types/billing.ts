@@ -8,12 +8,21 @@ export type FontSizeOption = 'small' | 'medium' | 'large';
 
 export type StyleVariant = 'classic' | 'modern' | 'compact' | 'bold' | 'elegant';
 
-export type TemplateId =
-  | 'classic_thermal_80mm'
-  | 'compact_thermal_58mm'
-  | 'modern_invoice_a5'
-  | 'professional_invoice_a4'
-  | 'elegant_minimal_a4';
+export const TEMPLATE_IDS = [
+  'shop_slip_80mm',
+  'simple_list_80mm',
+  'cash_memo_80mm',
+  'short_slip_58mm',
+  'classic_thermal_80mm',
+  'compact_thermal_58mm',
+  'modern_invoice_a5',
+] as const;
+
+export type TemplateId = (typeof TEMPLATE_IDS)[number];
+
+export function isTemplateId(value: unknown): value is TemplateId {
+  return typeof value === 'string' && (TEMPLATE_IDS as readonly string[]).includes(value);
+}
 
 export type TaxType = 'intrastate' | 'interstate';
 

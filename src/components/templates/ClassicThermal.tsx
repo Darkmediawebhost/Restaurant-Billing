@@ -234,7 +234,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
         <p className="font-medium text-neutral-800">
           {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your visit!'}
         </p>
-        <p className="text-[8px] text-neutral-400">Software by RestoBill</p>
+        
       </div>
           ),
         }}
