@@ -22,8 +22,6 @@ function slipFooter(message: string): string {
   return `***${text}***`;
 }
 
-const rule = 'border-t border-black';
-
 export const ShopSlip: React.FC<TemplateProps> = ({
   restaurant,
   details,
@@ -68,13 +66,11 @@ export const ShopSlip: React.FC<TemplateProps> = ({
               {restaurant.phone && <p>Mob : {restaurant.phone}</p>}
               {style.showGstin && restaurant.gstin && <p>GST - {restaurant.gstin}</p>}
               {style.showFssai && restaurant.fssai && <p>FSSAI - {restaurant.fssai}</p>}
-              <div className={`${rule} mt-1.5`} />
             </div>
           ),
           details: (
             <div>
               <p className="py-[3px]">Name: {details.customerName || ''}</p>
-              <div className={rule} />
               <div className="py-[3px]">
                 <div className="flex items-start justify-between gap-3">
                   <p>Date: {slipDate(details.date)}</p>
@@ -91,7 +87,6 @@ export const ShopSlip: React.FC<TemplateProps> = ({
                   <p className="whitespace-nowrap">Bill No.: {details.billNumber}</p>
                 </div>
               </div>
-              <div className={rule} />
             </div>
           ),
           items: (
@@ -174,7 +169,7 @@ export const ShopSlip: React.FC<TemplateProps> = ({
                   )}
                 </tbody>
               </table>
-              <div className="border-t-2 border-black mt-1.5 pt-1 flex items-baseline font-bold">
+              <div className="border-t border-neutral-300 mt-1.5 pt-1 flex items-baseline font-bold">
                 <span className="flex-1 text-center text-[13px]">Grand Total</span>
                 <span className="text-[15px] tabular-nums text-right">₹ {money(calculated.grandTotal)}</span>
               </div>

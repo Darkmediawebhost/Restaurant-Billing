@@ -9,6 +9,7 @@ export type FontSizeOption = 'small' | 'medium' | 'large';
 export type StyleVariant = 'classic' | 'modern' | 'compact' | 'bold' | 'elegant';
 
 export const TEMPLATE_IDS = [
+  'exact_slip_80mm',
   'shop_slip_80mm',
   'simple_list_80mm',
   'cash_memo_80mm',

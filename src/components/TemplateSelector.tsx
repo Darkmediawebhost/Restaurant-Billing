@@ -22,6 +22,14 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: TemplateOption[] = [
     {
+      id: 'exact_slip_80mm',
+      name: 'Exact Slip',
+      paperType: '80mm Roll',
+      widthLabel: 'Photo copy',
+      description: 'Ditto copy of the uploaded counter receipt: Name, Dine In, Item, Qty, Price, Amount.',
+      isThermal: true,
+    },
+    {
       id: 'shop_slip_80mm',
       name: 'Shop Slip',
       paperType: '80mm Roll',

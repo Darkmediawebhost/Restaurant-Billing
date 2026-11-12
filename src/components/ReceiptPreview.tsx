@@ -24,6 +24,7 @@ import { ClassicThermal } from './templates/ClassicThermal';
 import { CompactThermal } from './templates/CompactThermal';
 import { ModernInvoice } from './templates/ModernInvoice';
 import { ShopSlip } from './templates/ShopSlip';
+import { ExactSlip } from './templates/ExactSlip';
 import { SimpleList } from './templates/SimpleList';
 import { CashMemo } from './templates/CashMemo';
 import { ShortSlip } from './templates/ShortSlip';
@@ -136,6 +137,8 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
     switch (templateId) {
       case 'compact_thermal_58mm':
         return <CompactThermal {...props} />;
+      case 'exact_slip_80mm':
+        return <ExactSlip {...props} />;
       case 'shop_slip_80mm':
         return <ShopSlip {...props} />;
       case 'simple_list_80mm':
