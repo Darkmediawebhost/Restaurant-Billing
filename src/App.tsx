@@ -549,13 +549,13 @@ export default function App() {
               <GSTSettings gst={gst} onChange={setGst} />
 
               {/* 5. Bill Summary & Discount */}
-              <BillSummary
+              {/* <BillSummary
                 calculated={calculated}
                 discountType={discountType}
                 discountValue={discountValue}
                 onDiscountTypeChange={setDiscountType}
                 onDiscountValueChange={setDiscountValue}
-              />
+              /> */}
 
               {/* 6. Bill Style Customization */}
               <BillStyleSelector style={style} onChange={setStyle} />
