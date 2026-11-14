@@ -9,6 +9,7 @@ import {
 } from '../../types/billing';
 import { formatINR } from '../../utils/calculations';
 import { fontPx, getFontSizeScale, getVariantStyles, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 import { OrderedBlocks } from './OrderedBlocks';
 
 export interface TemplateProps {
@@ -33,11 +34,12 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
   const rule = ruleCss(style.dividerStyle);
 
   const headerAlignClass = style.headerAlignment === 'left' ? 'text-left' : 'text-center';
+  const chosenFont = billFontProps(style.fontFamily);
 
   return (
     <div
-      className="w-[320px] bg-white text-black p-5 font-mono leading-tight select-none"
-      style={{ fontSize: fontPx(style.fontSize) }}
+      className={`w-[320px] bg-white text-black p-5 font-mono leading-tight select-none ${chosenFont.className}`}
+      style={{ fontSize: fontPx(style.fontSize), ...chosenFont.style }}
     >
       <OrderedBlocks
         order={style.layoutOrder}
@@ -128,11 +130,11 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
       <>
       <table className="w-full text-[0.9em] mb-2">
         <thead>
-          <tr className={variant.tableHeadBg} style={{ borderBottom: `1px ${style.dividerStyle} #000000` }}>
-            <th className="py-1 text-left font-bold w-[50%]">ITEM</th>
-            <th className="py-1 text-center font-bold w-[15%]">QTY</th>
-            <th className="py-1 text-right font-bold w-[17%]">RATE</th>
-            <th className="py-1 text-right font-bold w-[18%]">AMT</th>
+          <tr className={variant.tableHeadBg} style={{ borderBottom: `1px ${style.dividerStyle} #000000`, backgroundColor: '#ffffff' }}>
+            <th className="bg-white py-1 text-left font-bold w-[50%]">ITEM</th>
+            <th className="bg-white py-1 text-center font-bold w-[15%]">QTY</th>
+            <th className="bg-white py-1 text-right font-bold w-[17%]">RATE</th>
+            <th className="bg-white py-1 text-right font-bold w-[18%]">AMT</th>
           </tr>
         </thead>
         <tbody>

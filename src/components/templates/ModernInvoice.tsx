@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { fontPx, getFontSizeScale, getVariantStyles, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 import { OrderedBlocks } from './OrderedBlocks';
 
 export const ModernInvoice: React.FC<TemplateProps> = ({
@@ -18,8 +19,8 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
 
   return (
     <div
-      className="w-[520px] bg-white text-neutral-900 p-8 shadow-sm font-sans select-none"
-      style={{ fontSize: fontPx(style.fontSize) + 1 }}
+      className={`w-[520px] bg-white text-neutral-900 p-8 shadow-sm font-sans select-none ${billFontProps(style.fontFamily).className}`}
+      style={{ fontSize: fontPx(style.fontSize) + 1, ...billFontProps(style.fontFamily).style }}
     >
       <OrderedBlocks
         order={style.layoutOrder}

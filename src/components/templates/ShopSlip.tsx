@@ -3,6 +3,7 @@ import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { OrderedBlocks } from './OrderedBlocks';
 import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -42,9 +43,10 @@ export const ShopSlip: React.FC<TemplateProps> = ({
 
   return (
     <div
-      className="w-[302px] bg-white text-black px-3 py-3 select-none"
+      className={`w-[302px] bg-white text-black px-3 py-3 select-none ${billFontProps(style.fontFamily).className}`}
       style={{
         fontFamily: 'Arial, Helvetica, sans-serif',
+        ...billFontProps(style.fontFamily).style,
         fontSize: size,
         lineHeight: style.styleVariant === 'compact' ? 1.05 : 1.2,
       }}

@@ -3,6 +3,7 @@ import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { OrderedBlocks } from './OrderedBlocks';
 import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -19,8 +20,8 @@ export const ShortSlip: React.FC<TemplateProps> = ({
   calculated,
 }) => (
   <div
-    className="w-[230px] bg-white text-neutral-950 p-3 font-sans leading-tight select-none"
-    style={{ fontSize: fontPx(style.fontSize, true) }}
+    className={`w-[230px] bg-white text-neutral-950 p-3 font-sans leading-tight select-none ${billFontProps(style.fontFamily).className}`}
+    style={{ fontSize: fontPx(style.fontSize, true), ...billFontProps(style.fontFamily).style }}
   >
     <OrderedBlocks
       order={style.layoutOrder}

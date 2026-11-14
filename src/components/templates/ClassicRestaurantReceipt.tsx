@@ -3,6 +3,7 @@ import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { DividerStyle } from '../../types/billing';
 import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -61,11 +62,12 @@ export const ClassicRestaurantReceipt: React.FC<TemplateProps & { narrow?: boole
 
   return (
     <div
-      className="bg-white text-black select-none"
+      className={`bg-white text-black select-none ${billFontProps(style.fontFamily).className}`}
       style={{
         width: narrow ? 219 : 302,
         padding: tight ? '4px 6px 6px' : narrow ? '5px 6px 7px' : '6px 8px 8px',
         fontFamily: 'Arial, Helvetica, sans-serif',
+        ...billFontProps(style.fontFamily).style,
         fontSize: size,
         lineHeight: tight ? 1.05 : 1.15,
         color: '#000000',

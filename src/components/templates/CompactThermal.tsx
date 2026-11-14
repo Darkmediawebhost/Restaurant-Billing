@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { fontPx, getFontSizeScale, getVariantStyles, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 import { OrderedBlocks } from './OrderedBlocks';
 
 export const CompactThermal: React.FC<TemplateProps> = ({
@@ -17,11 +18,12 @@ export const CompactThermal: React.FC<TemplateProps> = ({
   const rule = ruleCss(style.dividerStyle);
 
   const headerAlignClass = style.headerAlignment === 'left' ? 'text-left' : 'text-center';
+  const chosenFont = billFontProps(style.fontFamily);
 
   return (
     <div
-      className="w-[230px] bg-white text-black p-3 font-mono leading-tight select-none"
-      style={{ fontSize: fontPx(style.fontSize, true) }}
+      className={`w-[230px] bg-white text-black p-3 font-mono leading-tight select-none ${chosenFont.className}`}
+      style={{ fontSize: fontPx(style.fontSize, true), ...chosenFont.style }}
     >
       <OrderedBlocks
         order={style.layoutOrder}

@@ -85,6 +85,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
     templateId,
     style.layoutOrder,
     style.fontSize,
+    style.fontFamily,
     style.headerAlignment,
     style.dividerStyle,
     restaurant.logoUrl,

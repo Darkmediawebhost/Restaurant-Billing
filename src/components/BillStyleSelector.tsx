@@ -6,7 +6,9 @@ import {
   FontSizeOption,
   HeaderAlignment,
   DividerStyle,
+  ReceiptFontId,
 } from '../types/billing';
+import { RECEIPT_FONTS, receiptFontById } from '../utils/receiptFonts';
 
 interface BillStyleSelectorProps {
   style: BillStyle;
@@ -70,7 +72,38 @@ export const BillStyleSelector: React.FC<BillStyleSelectorProps> = ({ style, onC
       </div>
 
       {/* Typography & Alignment Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-neutral-100">
+      <div className="space-y-4 pt-2 border-t border-neutral-100">
+        <div className="space-y-1.5">
+          <label htmlFor="receipt-font" className="text-xs font-semibold text-neutral-800 flex items-center gap-1">
+            <Type className="w-3.5 h-3.5 text-neutral-400" />
+            <span>Receipt Font</span>
+          </label>
+          <select
+            id="receipt-font"
+            value={style.fontFamily || 'default'}
+            onChange={(e) => handleFieldChange('fontFamily', e.target.value as ReceiptFontId)}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900"
+            style={{ fontFamily: receiptFontById(style.fontFamily).stack || undefined }}
+          >
+            {(['Default', 'Sans', 'Mono', 'Serif'] as const).map((group) => (
+              <optgroup key={group} label={group}>
+                {RECEIPT_FONTS.filter((font) => font.group === group).map((font) => (
+                  <option key={font.id} value={font.id} style={{ fontFamily: font.stack || undefined }}>
+                    {font.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <p
+            className="text-sm text-neutral-900 leading-tight"
+            style={{ fontFamily: receiptFontById(style.fontFamily).stack || undefined }}
+          >
+            The Golden Fork Bistro · Biryani 2 × ₹220
+          </p>
+        </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Font Size */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-neutral-800 flex items-center gap-1">
@@ -149,6 +182,7 @@ export const BillStyleSelector: React.FC<BillStyleSelectorProps> = ({ style, onC
             ))}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Visibility Toggles */}

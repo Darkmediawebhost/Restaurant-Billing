@@ -89,28 +89,28 @@ export function getVariantStyles(variant: StyleVariant) {
       return {
         headerWeight: 'font-extrabold uppercase tracking-wider',
         dividerWeight: 'border-b-2 border-neutral-950',
-        tableHeadBg: 'bg-neutral-100 text-neutral-950 font-bold',
+        tableHeadBg: 'bg-white text-neutral-950 font-bold',
         accentBg: 'bg-neutral-950 text-white',
       };
     case 'modern':
       return {
         headerWeight: 'font-semibold tracking-tight',
         dividerWeight: 'border-b border-neutral-300',
-        tableHeadBg: 'bg-neutral-50 text-neutral-700',
+        tableHeadBg: 'bg-white text-neutral-700',
         accentBg: 'bg-neutral-900 text-white',
       };
     case 'compact':
       return {
         headerWeight: 'font-bold uppercase tracking-tight',
         dividerWeight: 'border-b border-neutral-400',
-        tableHeadBg: 'bg-transparent text-neutral-900 font-semibold',
+        tableHeadBg: 'bg-white text-neutral-900 font-semibold',
         accentBg: 'bg-neutral-900 text-white',
       };
     case 'elegant':
       return {
         headerWeight: 'font-medium uppercase tracking-[0.2em]',
         dividerWeight: 'border-b border-neutral-200',
-        tableHeadBg: 'bg-transparent text-neutral-500 uppercase tracking-widest text-[9px]',
+        tableHeadBg: 'bg-white text-neutral-500 uppercase tracking-widest text-[9px]',
         accentBg: 'bg-neutral-900 text-white',
       };
     case 'classic':
@@ -118,7 +118,7 @@ export function getVariantStyles(variant: StyleVariant) {
       return {
         headerWeight: 'font-bold uppercase tracking-wider',
         dividerWeight: 'border-b border-neutral-900',
-        tableHeadBg: 'bg-transparent text-neutral-900 font-bold',
+        tableHeadBg: 'bg-white text-neutral-900 font-bold',
         accentBg: 'bg-neutral-950 text-white',
       };
   }

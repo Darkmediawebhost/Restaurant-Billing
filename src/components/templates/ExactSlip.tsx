@@ -4,6 +4,7 @@ import { formatINR } from '../../utils/calculations';
 import { DividerStyle } from '../../types/billing';
 import { OrderedBlocks } from './OrderedBlocks';
 import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -92,8 +93,8 @@ export const ExactSlip: React.FC<TemplateProps> = ({
 
   return (
     <div
-      className="w-[302px] bg-white px-[8px] pt-[6px] pb-[8px] select-none"
-      style={{ ...slipFont, fontSize: size, lineHeight: style.styleVariant === 'compact' ? 1.05 : 1.15 }}
+      className={`w-[302px] bg-white px-[8px] pt-[6px] pb-[8px] select-none ${billFontProps(style.fontFamily).className}`}
+      style={{ ...slipFont, fontSize: size, lineHeight: style.styleVariant === 'compact' ? 1.05 : 1.15, ...billFontProps(style.fontFamily).style }}
     >
       <OrderedBlocks
         order={style.layoutOrder}

@@ -3,6 +3,7 @@ import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { OrderedBlocks } from './OrderedBlocks';
 import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
+import { billFontProps } from '../../utils/receiptFonts';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -19,8 +20,8 @@ export const CashMemo: React.FC<TemplateProps> = ({
   calculated,
 }) => (
   <div
-    className="w-[320px] bg-white text-neutral-950 p-4 font-sans leading-snug select-none"
-    style={{ fontSize: fontPx(style.fontSize) }}
+    className={`w-[320px] bg-white text-neutral-950 p-4 font-sans leading-snug select-none ${billFontProps(style.fontFamily).className}`}
+    style={{ fontSize: fontPx(style.fontSize), ...billFontProps(style.fontFamily).style }}
   >
     <OrderedBlocks
       order={style.layoutOrder}

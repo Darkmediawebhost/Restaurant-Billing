@@ -6,6 +6,24 @@ export type HeaderAlignment = 'left' | 'center';
 
 export type FontSizeOption = 'small' | 'medium' | 'large';
 
+export type ReceiptFontId =
+  | 'default'
+  | 'roboto'
+  | 'noto_sans'
+  | 'open_sans'
+  | 'inter'
+  | 'source_sans'
+  | 'ibm_plex_sans'
+  | 'poppins'
+  | 'work_sans'
+  | 'roboto_mono'
+  | 'ibm_plex_mono'
+  | 'courier_prime'
+  | 'jetbrains_mono'
+  | 'merriweather'
+  | 'libre_baskerville'
+  | 'lora';
+
 export type StyleVariant = 'classic' | 'modern' | 'compact' | 'bold' | 'elegant';
 
 export const TEMPLATE_IDS = [
@@ -90,6 +108,7 @@ export const DEFAULT_LAYOUT_ORDER: LayoutBlockId[] = [
 export interface BillStyle {
   styleVariant: StyleVariant;
   fontSize: FontSizeOption;
+  fontFamily?: ReceiptFontId;
   headerAlignment: HeaderAlignment;
   showLogo: boolean;
   showGstin: boolean;

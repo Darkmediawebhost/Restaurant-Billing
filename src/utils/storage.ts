@@ -32,6 +32,7 @@ export const DEFAULT_RESTAURANT: RestaurantInfo = {
 export const DEFAULT_BILL_STYLE: BillStyle = {
   styleVariant: 'classic',
   fontSize: 'medium',
+  fontFamily: 'default',
   headerAlignment: 'center',
   showLogo: true,
   showGstin: true,
