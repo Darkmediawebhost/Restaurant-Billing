@@ -118,33 +118,33 @@ export const CompactThermal: React.FC<TemplateProps> = ({
           ),
           totals: (
       <>
-      <div className="space-y-0.5 text-[0.9em] mb-1">
-        <div className="flex justify-between">
-          <span>Qty: {calculated.totalQuantity}</span>
-          <span>Sub: {formatINR(calculated.grossAmount)}</span>
-        </div>
+      <div className="ml-auto grid w-max max-w-full grid-cols-[auto_auto] gap-x-2 gap-y-0.5 text-[0.9em] mb-1">
+        <span className="text-right">Qty:</span>
+        <span className="text-right tabular-nums">{calculated.totalQuantity}</span>
+        <span className="text-right">Sub:</span>
+        <span className="text-right tabular-nums">{formatINR(calculated.grossAmount)}</span>
 
         {calculated.discountAmount > 0 && (
-          <div className="flex justify-between">
-            <span>Disc:</span>
-            <span className="tabular-nums">-{formatINR(calculated.discountAmount)}</span>
-          </div>
+          <>
+            <span className="text-right">Disc:</span>
+            <span className="text-right tabular-nums">-{formatINR(calculated.discountAmount)}</span>
+          </>
         )}
 
         {gst.enabled && calculated.totalTax > 0 && (
-          <div className="flex justify-between text-[0.85em]">
-            <span>
+          <>
+            <span className="text-right text-[0.85em]">
               {gst.taxType === 'intrastate' ? `GST (${calculated.taxRate}%)` : `IGST (${calculated.taxRate}%)`}:
             </span>
-            <span className="tabular-nums">{formatINR(calculated.totalTax)}</span>
-          </div>
+            <span className="text-right text-[0.85em] tabular-nums">{formatINR(calculated.totalTax)}</span>
+          </>
         )}
 
         {calculated.roundOff !== 0 && (
-          <div className="flex justify-between text-[0.8em]">
-            <span>Round off:</span>
-            <span>{formatINR(calculated.roundOff)}</span>
-          </div>
+          <>
+            <span className="text-right text-[0.8em]">Round off:</span>
+            <span className="text-right text-[0.8em] tabular-nums">{formatINR(calculated.roundOff)}</span>
+          </>
         )}
       </div>
 
