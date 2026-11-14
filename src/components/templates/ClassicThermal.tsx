@@ -160,63 +160,52 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
           ),
           totals: (
       <>
-      <div className="space-y-1 text-[0.9em] mb-2">
-        <div className="flex justify-between">
-          <span>Total Qty:</span>
-          <span className="font-semibold tabular-nums">{calculated.totalQuantity}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Subtotal:</span>
-          <span className="font-semibold tabular-nums">{formatINR(calculated.grossAmount)}</span>
-        </div>
+      <div className="ml-auto grid w-max max-w-full grid-cols-[auto_auto] gap-x-3 gap-y-1 text-[0.9em] mb-2">
+        <span className="text-right">Total Qty:</span>
+        <span className="text-right font-semibold tabular-nums">{calculated.totalQuantity}</span>
+        <span className="text-right">Subtotal:</span>
+        <span className="text-right font-semibold tabular-nums">{formatINR(calculated.grossAmount)}</span>
 
         {calculated.discountAmount > 0 && (
-          <div className="flex justify-between">
-            <span>
+          <>
+            <span className="text-right">
               Discount{' '}
               {calculated.discountType === 'percentage' ? `(${calculated.discountValue}%)` : ''}:
             </span>
-            <span className="tabular-nums font-semibold">
+            <span className="text-right tabular-nums font-semibold">
               -{formatINR(calculated.discountAmount)}
             </span>
-          </div>
+          </>
         )}
 
-        {gst.enabled && calculated.totalTax > 0 && (
-          <div className="pt-0.5 space-y-0.5">
-            {gst.taxType === 'intrastate' ? (
-              <>
-                <div className="flex justify-between text-[0.82em]">
-                  <span>CGST ({calculated.cgstRate}%):</span>
-                  <span className="tabular-nums">{formatINR(calculated.cgstAmount)}</span>
-                </div>
-                <div className="flex justify-between text-[0.82em]">
-                  <span>SGST ({calculated.sgstRate}%):</span>
-                  <span className="tabular-nums">{formatINR(calculated.sgstAmount)}</span>
-                </div>
-              </>
-            ) : (
-              <div className="flex justify-between text-[0.82em]">
-                <span>IGST ({calculated.igstRate}%):</span>
-                <span className="tabular-nums">{formatINR(calculated.igstAmount)}</span>
-              </div>
-            )}
-            {calculated.isTaxInclusive && (
-              <p className="text-[0.75em] italic text-right">
-                (Included in item prices)
-              </p>
-            )}
-          </div>
+        {gst.enabled && calculated.totalTax > 0 && gst.taxType === 'intrastate' && (
+          <>
+            <span className="text-right text-[0.82em]">CGST ({calculated.cgstRate}%):</span>
+            <span className="text-right text-[0.82em] tabular-nums">{formatINR(calculated.cgstAmount)}</span>
+            <span className="text-right text-[0.82em]">SGST ({calculated.sgstRate}%):</span>
+            <span className="text-right text-[0.82em] tabular-nums">{formatINR(calculated.sgstAmount)}</span>
+          </>
+        )}
+        {gst.enabled && calculated.totalTax > 0 && gst.taxType !== 'intrastate' && (
+          <>
+            <span className="text-right text-[0.82em]">IGST ({calculated.igstRate}%):</span>
+            <span className="text-right text-[0.82em] tabular-nums">{formatINR(calculated.igstAmount)}</span>
+          </>
+        )}
+        {gst.enabled && calculated.totalTax > 0 && calculated.isTaxInclusive && (
+          <p className="col-span-2 text-[0.75em] italic text-right">
+            (Included in item prices)
+          </p>
         )}
 
         {calculated.roundOff !== 0 && (
-          <div className="flex justify-between text-[0.82em]">
-            <span>Round Off:</span>
-            <span className="tabular-nums">
+          <>
+            <span className="text-right text-[0.82em]">Round Off:</span>
+            <span className="text-right text-[0.82em] tabular-nums">
               {calculated.roundOff > 0 ? '+' : ''}
               {formatINR(calculated.roundOff)}
             </span>
-          </div>
+          </>
         )}
       </div>
 
