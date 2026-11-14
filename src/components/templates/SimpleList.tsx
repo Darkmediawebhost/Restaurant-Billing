@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { OrderedBlocks } from './OrderedBlocks';
+import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -17,12 +18,15 @@ export const SimpleList: React.FC<TemplateProps> = ({
   style,
   calculated,
 }) => (
-  <div className="w-[320px] bg-white text-neutral-950 p-4 font-sans text-[12px] leading-snug select-none">
+  <div
+    className="w-[320px] bg-white text-neutral-950 p-4 font-sans leading-snug select-none"
+    style={{ fontSize: fontPx(style.fontSize) }}
+  >
     <OrderedBlocks
       order={style.layoutOrder}
       blocks={{
         logo: (
-          <div className="text-center mb-2">
+          <div className="mb-2" style={{ textAlign: style.headerAlignment }}>
             {style.showLogo && restaurant.logoUrl && (
               <img
                 src={restaurant.logoUrl}
@@ -33,21 +37,24 @@ export const SimpleList: React.FC<TemplateProps> = ({
           </div>
         ),
         header: (
-          <div className="text-center pb-2 border-b border-neutral-950">
-            <h1 className="text-base font-bold">{restaurant.name || 'Restaurant'}</h1>
+          <div className="pb-2" style={{ textAlign: style.headerAlignment, borderBottom: `1px ${style.dividerStyle} #000000` }}>
+            <h1 style={nameLook(style.styleVariant, fontPx(style.fontSize) + 4)}>{restaurant.name || 'Restaurant'}</h1>
             {restaurant.address && (
-              <p className="whitespace-pre-line text-[11px]">{restaurant.address}</p>
+              <p className="whitespace-pre-line">{restaurant.address}</p>
             )}
-            {restaurant.phone && <p className="text-[11px]">{restaurant.phone}</p>}
+            {restaurant.phone && <p>{restaurant.phone}</p>}
+            {showGstLine(style, restaurant) && <p>GST {restaurant.gstin}</p>}
+            {showFssaiLine(style, restaurant) && <p>FSSAI {restaurant.fssai}</p>}
           </div>
         ),
         details: (
-          <div className="py-1.5 text-[11px] border-b border-neutral-950">
+          <div className="py-1.5" style={{ borderBottom: `1px ${style.dividerStyle} #000000` }}>
             <div className="flex justify-between">
               <span>{slipDate(details.date)}{style.showBillTime && details.time ? `  ${details.time}` : ''}</span>
               <span>{details.billNumber}</span>
             </div>
             {details.customerName && <p>Name: {details.customerName}</p>}
+            {style.showCashier && details.cashier && <p>Cashier: {details.cashier}</p>}
           </div>
         ),
         items: (
@@ -63,7 +70,9 @@ export const SimpleList: React.FC<TemplateProps> = ({
           </div>
         ),
         totals: (
-          <div className="border-t border-neutral-950 pt-1.5 space-y-0.5">
+          <div>
+          <div style={ruleCss(style.dividerStyle)} />
+          <div className="pt-1.5 space-y-0.5">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span className="tabular-nums">{formatINR(calculated.grossAmount, false)}</span>
@@ -80,10 +89,12 @@ export const SimpleList: React.FC<TemplateProps> = ({
                 <span className="tabular-nums">{formatINR(calculated.totalTax, false)}</span>
               </div>
             )}
-            <div className="border-t-2 border-neutral-950 mt-1 pt-1 flex justify-between font-bold text-sm">
+            <div style={ruleCss(style.dividerStyle, 4)} />
+            <div className="pt-1 flex justify-between font-bold text-sm">
               <span>TOTAL</span>
               <span className="tabular-nums">{formatINR(calculated.grandTotal)}</span>
             </div>
+          </div>
           </div>
         ),
         footer: (

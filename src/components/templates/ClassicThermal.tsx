@@ -8,7 +8,7 @@ import {
   BillCalculations,
 } from '../../types/billing';
 import { formatINR } from '../../utils/calculations';
-import { getDividerClass, getFontSizeScale, getVariantStyles } from './templateUtils';
+import { fontPx, getFontSizeScale, getVariantStyles, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
 import { OrderedBlocks } from './OrderedBlocks';
 
 export interface TemplateProps {
@@ -30,12 +30,15 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
 }) => {
   const fontScale = getFontSizeScale(style.fontSize);
   const variant = getVariantStyles(style.styleVariant);
-  const divider = getDividerClass(style.dividerStyle);
+  const rule = ruleCss(style.dividerStyle);
 
   const headerAlignClass = style.headerAlignment === 'left' ? 'text-left' : 'text-center';
 
   return (
-    <div className="w-[320px] bg-white text-neutral-900 p-5 font-mono text-[11px] leading-tight select-none">
+    <div
+      className="w-[320px] bg-white text-black p-5 font-mono leading-tight select-none"
+      style={{ fontSize: fontPx(style.fontSize) }}
+    >
       <OrderedBlocks
         order={style.layoutOrder}
         blocks={{
@@ -57,29 +60,29 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
           {restaurant.name || 'RESTAURANT NAME'}
         </h1>
         {restaurant.address && (
-          <p className="whitespace-pre-line text-[10px] text-neutral-600 mt-1">
+          <p className="whitespace-pre-line text-[0.9em] mt-1">
             {restaurant.address}
           </p>
         )}
         {restaurant.phone && (
-          <p className="text-[10px] text-neutral-700 mt-0.5">Ph: {restaurant.phone}</p>
+          <p className="text-[0.9em] mt-0.5">Ph: {restaurant.phone}</p>
         )}
-        {style.showGstin && restaurant.gstin && (
-          <p className="text-[10px] text-neutral-800 font-semibold mt-0.5">
+        {showGstLine(style, restaurant) && (
+          <p className="text-[0.9em] font-semibold mt-0.5">
             GSTIN: {restaurant.gstin}
           </p>
         )}
-        {style.showFssai && restaurant.fssai && (
-          <p className="text-[10px] text-neutral-600 mt-0.5">FSSAI: {restaurant.fssai}</p>
+        {showFssaiLine(style, restaurant) && (
+          <p className="text-[0.9em] mt-0.5">FSSAI: {restaurant.fssai}</p>
         )}
       </div>
 
-      <div className={`${divider} my-2`}></div>
+      <div className="my-2" style={rule}></div>
       </>
           ),
           details: (
       <>
-      <div className="space-y-0.5 text-[10px] mb-2">
+      <div className="space-y-0.5 text-[0.9em] mb-2">
         <div className="flex justify-between">
           <span className="font-semibold">Bill No:</span>
           <span className="font-bold">{details.billNumber}</span>
@@ -111,32 +114,32 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
           </div>
         )}
         {style.showCashier && details.cashier && (
-          <div className="flex justify-between text-neutral-500">
+          <div className="flex justify-between">
             <span>Cashier:</span>
             <span>{details.cashier}</span>
           </div>
         )}
       </div>
 
-      <div className={`${divider} my-2`}></div>
+      <div className="my-2" style={rule}></div>
       </>
           ),
           items: (
       <>
-      <table className="w-full text-[10px] mb-2">
+      <table className="w-full text-[0.9em] mb-2">
         <thead>
-          <tr className={`${variant.tableHeadBg} border-b border-neutral-300`}>
+          <tr className={variant.tableHeadBg} style={{ borderBottom: `1px ${style.dividerStyle} #000000` }}>
             <th className="py-1 text-left font-bold w-[50%]">ITEM</th>
             <th className="py-1 text-center font-bold w-[15%]">QTY</th>
             <th className="py-1 text-right font-bold w-[17%]">RATE</th>
             <th className="py-1 text-right font-bold w-[18%]">AMT</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-dashed divide-neutral-200">
+        <tbody>
           {items.map((item, index) => (
             <tr key={item.id || index}>
               <td className="py-1 text-left align-top pr-1">
-                <span className="font-medium text-neutral-900 block leading-tight">
+                <span className="font-medium block leading-tight">
                   {item.name || 'Item'}
                 </span>
               </td>
@@ -152,12 +155,12 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
         </tbody>
       </table>
 
-      <div className={`${divider} my-2`}></div>
+      <div className="my-2" style={rule}></div>
       </>
           ),
           totals: (
       <>
-      <div className="space-y-1 text-[10px] mb-2">
+      <div className="space-y-1 text-[0.9em] mb-2">
         <div className="flex justify-between">
           <span>Total Qty:</span>
           <span className="font-semibold tabular-nums">{calculated.totalQuantity}</span>
@@ -168,7 +171,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
         </div>
 
         {calculated.discountAmount > 0 && (
-          <div className="flex justify-between text-neutral-800">
+          <div className="flex justify-between">
             <span>
               Discount{' '}
               {calculated.discountType === 'percentage' ? `(${calculated.discountValue}%)` : ''}:
@@ -183,23 +186,23 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
           <div className="pt-0.5 space-y-0.5">
             {gst.taxType === 'intrastate' ? (
               <>
-                <div className="flex justify-between text-neutral-600 text-[9px]">
+                <div className="flex justify-between text-[0.82em]">
                   <span>CGST ({calculated.cgstRate}%):</span>
                   <span className="tabular-nums">{formatINR(calculated.cgstAmount)}</span>
                 </div>
-                <div className="flex justify-between text-neutral-600 text-[9px]">
+                <div className="flex justify-between text-[0.82em]">
                   <span>SGST ({calculated.sgstRate}%):</span>
                   <span className="tabular-nums">{formatINR(calculated.sgstAmount)}</span>
                 </div>
               </>
             ) : (
-              <div className="flex justify-between text-neutral-600 text-[9px]">
+              <div className="flex justify-between text-[0.82em]">
                 <span>IGST ({calculated.igstRate}%):</span>
                 <span className="tabular-nums">{formatINR(calculated.igstAmount)}</span>
               </div>
             )}
             {calculated.isTaxInclusive && (
-              <p className="text-[8px] text-neutral-500 italic text-right">
+              <p className="text-[0.75em] italic text-right">
                 (Included in item prices)
               </p>
             )}
@@ -207,7 +210,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
         )}
 
         {calculated.roundOff !== 0 && (
-          <div className="flex justify-between text-neutral-600 text-[9px]">
+          <div className="flex justify-between text-[0.82em]">
             <span>Round Off:</span>
             <span className="tabular-nums">
               {calculated.roundOff > 0 ? '+' : ''}
@@ -217,7 +220,7 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
         )}
       </div>
 
-      <div className={`${divider} my-2`}></div>
+      <div className="my-2" style={rule}></div>
 
       {/* Grand Total */}
       <div className="flex justify-between items-center py-1">
@@ -226,12 +229,12 @@ export const ClassicThermal: React.FC<TemplateProps> = ({
           {formatINR(calculated.grandTotal)}
         </span>
       </div>
-      <div className={`${divider} my-3`}></div>
+      <div className="my-3" style={rule}></div>
       </>
           ),
           footer: (
-      <div className="text-center text-[9px] text-neutral-500 space-y-1">
-        <p className="font-medium text-neutral-800">
+      <div className="text-center text-[0.82em] space-y-1">
+        <p className="font-medium">
           {restaurant.footerMessage?.trim() || style.footerMessage || 'Thank you for your visit!'}
         </p>
         

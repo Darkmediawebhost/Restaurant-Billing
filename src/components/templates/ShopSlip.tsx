@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { OrderedBlocks } from './OrderedBlocks';
+import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -36,11 +37,17 @@ export const ShopSlip: React.FC<TemplateProps> = ({
       ? details.tableNumber.replace(/^t-?/i, '')
       : '';
   const money = (value: number) => formatINR(value, false);
+  const size = fontPx(style.fontSize);
+  const align = style.headerAlignment === 'left' ? 'left' : 'center';
 
   return (
     <div
-      className="w-[302px] bg-white text-black px-3 py-3 text-[11px] leading-[1.3] select-none"
-      style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+      className="w-[302px] bg-white text-black px-3 py-3 select-none"
+      style={{
+        fontFamily: 'Arial, Helvetica, sans-serif',
+        fontSize: size,
+        lineHeight: style.styleVariant === 'compact' ? 1.05 : 1.2,
+      }}
     >
       <OrderedBlocks
         order={style.layoutOrder}
@@ -58,14 +65,14 @@ export const ShopSlip: React.FC<TemplateProps> = ({
               <></>
             ),
           header: (
-            <div className="text-center">
-              <h1 className="text-[16px] font-bold leading-tight">{restaurant.name || 'Restaurant Name'}</h1>
+            <div style={{ textAlign: align }}>
+              <h1 style={nameLook(style.styleVariant, size + 4)}>{restaurant.name || 'Restaurant Name'}</h1>
               {restaurant.address && (
                 <p className="whitespace-pre-line mt-0.5">{restaurant.address}</p>
               )}
               {restaurant.phone && <p>Mob : {restaurant.phone}</p>}
-              {style.showGstin && restaurant.gstin && <p>GST - {restaurant.gstin}</p>}
-              {style.showFssai && restaurant.fssai && <p>FSSAI - {restaurant.fssai}</p>}
+              {showGstLine(style, restaurant) && <p>GST - {restaurant.gstin}</p>}
+              {showFssaiLine(style, restaurant) && <p>FSSAI - {restaurant.fssai}</p>}
             </div>
           ),
           details: (
@@ -169,14 +176,15 @@ export const ShopSlip: React.FC<TemplateProps> = ({
                   )}
                 </tbody>
               </table>
-              <div className="border-t border-neutral-300 mt-1.5 pt-1 flex items-baseline font-bold">
+              <div style={ruleCss(style.dividerStyle, 6)} />
+              <div className="pt-1 flex items-baseline font-bold">
                 <span className="flex-1 text-center text-[13px]">Grand Total</span>
                 <span className="text-[15px] tabular-nums text-right">₹ {money(calculated.grandTotal)}</span>
               </div>
             </div>
           ),
           footer: (
-            <p className="text-center font-bold text-[11px] mt-2">
+            <p className="text-center text-[11px] mt-2">
               {slipFooter(restaurant.footerMessage || style.footerMessage || '')}
             </p>
           ),

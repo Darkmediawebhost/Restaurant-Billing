@@ -2,6 +2,7 @@ import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
 import { OrderedBlocks } from './OrderedBlocks';
+import { fontPx, nameLook, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
 
 function slipDate(iso: string): string {
   const [year, month, day] = (iso || '').split('-');
@@ -17,12 +18,15 @@ export const CashMemo: React.FC<TemplateProps> = ({
   style,
   calculated,
 }) => (
-  <div className="w-[320px] bg-white text-neutral-950 p-4 font-sans text-[12px] leading-snug select-none">
+  <div
+    className="w-[320px] bg-white text-neutral-950 p-4 font-sans leading-snug select-none"
+    style={{ fontSize: fontPx(style.fontSize) }}
+  >
     <OrderedBlocks
       order={style.layoutOrder}
       blocks={{
         logo: (
-          <div className="text-center mb-1">
+          <div className="mb-1" style={{ textAlign: style.headerAlignment }}>
             {style.showLogo && restaurant.logoUrl && (
               <img
                 src={restaurant.logoUrl}
@@ -33,27 +37,30 @@ export const CashMemo: React.FC<TemplateProps> = ({
           </div>
         ),
         header: (
-          <div className="text-center pb-2">
-            <p className="text-[10px] font-bold tracking-[0.2em]">CASH MEMO</p>
-            <h1 className="text-base font-bold">{restaurant.name || 'Restaurant'}</h1>
-            {restaurant.phone && <p className="text-[11px]">{restaurant.phone}</p>}
-            {style.showGstin && restaurant.gstin && (
-              <p className="text-[11px]">GST {restaurant.gstin}</p>
-            )}
+          <div className="pb-2" style={{ textAlign: style.headerAlignment }}>
+            <p className="font-bold tracking-[0.2em]">CASH MEMO</p>
+            <h1 style={nameLook(style.styleVariant, fontPx(style.fontSize) + 4)}>{restaurant.name || 'Restaurant'}</h1>
+            {restaurant.phone && <p>{restaurant.phone}</p>}
+            {showGstLine(style, restaurant) && <p>GST {restaurant.gstin}</p>}
+            {showFssaiLine(style, restaurant) && <p>FSSAI {restaurant.fssai}</p>}
           </div>
         ),
         details: (
-          <div className="border-y border-neutral-950 py-1.5 text-[11px] space-y-0.5">
+          <div
+            className="py-1.5 space-y-0.5"
+            style={{ borderTop: `1px ${style.dividerStyle} #000000`, borderBottom: `1px ${style.dividerStyle} #000000` }}
+          >
             <p>Name: {details.customerName || '—'}</p>
             <div className="flex justify-between">
-              <span>Date: {slipDate(details.date)}</span>
+              <span>Date: {slipDate(details.date)}{style.showBillTime && details.time ? ` ${details.time}` : ''}</span>
               <span>No: {details.billNumber}</span>
             </div>
+            {style.showCashier && details.cashier && <p>Cashier: {details.cashier}</p>}
           </div>
         ),
         items: (
           <div className="py-1.5">
-            <div className="flex font-bold text-[11px] border-b border-neutral-950 pb-0.5">
+            <div className="flex font-bold pb-0.5" style={{ borderBottom: `1px ${style.dividerStyle} #000000` }}>
               <span className="flex-1">Item</span>
               <span className="w-10 text-center">Qty</span>
               <span className="w-16 text-right">Amt</span>
@@ -68,7 +75,7 @@ export const CashMemo: React.FC<TemplateProps> = ({
           </div>
         ),
         totals: (
-          <div className="border border-neutral-950 px-2 py-1.5 space-y-0.5">
+          <div className="px-2 py-1.5 space-y-0.5" style={{ border: `1px ${style.dividerStyle} #000000` }}>
             <div className="flex justify-between text-[11px]">
               <span>Subtotal</span>
               <span className="tabular-nums">{formatINR(calculated.grossAmount, false)}</span>
@@ -85,7 +92,8 @@ export const CashMemo: React.FC<TemplateProps> = ({
                 <span className="tabular-nums">{formatINR(calculated.totalTax, false)}</span>
               </div>
             )}
-            <div className="flex justify-between font-bold text-sm border-t border-neutral-950 pt-1">
+            <div style={ruleCss(style.dividerStyle, 4)} />
+            <div className="flex justify-between font-bold text-sm pt-1">
               <span>Grand Total</span>
               <span className="tabular-nums">{formatINR(calculated.grandTotal)}</span>
             </div>

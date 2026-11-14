@@ -22,35 +22,27 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const templates: TemplateOption[] = [
     {
+      id: 'classic_restaurant_80mm',
+      name: 'Classic Restaurant',
+      paperType: '80mm Roll',
+      widthLabel: 'Thermal POS',
+      description: 'Traditional restaurant receipt: name, dine-in, item, qty, price, amount, GST and grand total.',
+      isThermal: true,
+    },
+    {
+      id: 'classic_restaurant_58mm',
+      name: 'Classic Restaurant',
+      paperType: '58mm Roll',
+      widthLabel: 'Narrow thermal',
+      description: 'The same restaurant receipt on a 58mm roll.',
+      isThermal: true,
+    },
+    {
       id: 'exact_slip_80mm',
       name: 'Exact Slip',
       paperType: '80mm Roll',
       widthLabel: 'Photo copy',
       description: 'Ditto copy of the uploaded counter receipt: Name, Dine In, Item, Qty, Price, Amount.',
-      isThermal: true,
-    },
-    {
-      id: 'shop_slip_80mm',
-      name: 'Shop Slip',
-      paperType: '80mm Roll',
-      widthLabel: 'Counter POS',
-      description: 'Counter slip: shop lines, Name, Date with Dine In, then Item, Qty, Price and Amount.',
-      isThermal: true,
-    },
-    {
-      id: 'simple_list_80mm',
-      name: 'Simple List',
-      paperType: '80mm Roll',
-      widthLabel: 'Easy bill',
-      description: 'A short list. Quantity and item on the left, amount on the right.',
-      isThermal: true,
-    },
-    {
-      id: 'cash_memo_80mm',
-      name: 'Cash Memo',
-      paperType: '80mm Roll',
-      widthLabel: 'Memo',
-      description: 'A plain cash memo with name, date, item, qty and amount.',
       isThermal: true,
     },
     {
@@ -77,6 +69,31 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       description: 'Ultra-compact layout for small portable Bluetooth & 58mm printers.',
       isThermal: true,
     },
+    {
+      id: 'shop_slip_80mm',
+      name: 'Shop Slip',
+      paperType: '80mm Roll',
+      widthLabel: 'Counter POS',
+      description: 'Counter slip: shop lines, Name, Date with Dine In, then Item, Qty, Price and Amount.',
+      isThermal: true,
+    },
+    {
+      id: 'simple_list_80mm',
+      name: 'Simple List',
+      paperType: '80mm Roll',
+      widthLabel: 'Easy bill',
+      description: 'A short list. Quantity and item on the left, amount on the right.',
+      isThermal: true,
+    },
+    {
+      id: 'cash_memo_80mm',
+      name: 'Cash Memo',
+      paperType: '80mm Roll',
+      widthLabel: 'Memo',
+      description: 'A plain cash memo with name, date, item, qty and amount.',
+      isThermal: true,
+    },
+   
     {
       id: 'modern_invoice_a5',
       name: 'Modern Invoice',
@@ -144,7 +161,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     isSelected ? 'text-neutral-300' : 'text-neutral-500'
                   }`}
                 >
-                  {tpl.description}
+                  {/* {tpl.description} */}
                 </p>
               </div>
 

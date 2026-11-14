@@ -1,14 +1,52 @@
-import { DividerStyle, FontSizeOption, StyleVariant } from '../../types/billing';
+import type { CSSProperties } from 'react';
+import { BillStyle, DividerStyle, FontSizeOption, RestaurantInfo, StyleVariant } from '../../types/billing';
+
+export function fontPx(size: FontSizeOption, narrow = false): number {
+  const base = size === 'small' ? 10 : size === 'large' ? 13 : 11;
+  return narrow ? Math.max(9, base - 1) : base;
+}
+
+export function ruleCss(divider: DividerStyle, gap = 0): CSSProperties {
+  return {
+    borderTop: `1px ${divider} #000000`,
+    marginTop: gap,
+    height: 0,
+  };
+}
+
+export function nameLook(variant: StyleVariant, titlePx: number): CSSProperties {
+  if (variant === 'bold') {
+    return { margin: 0, fontSize: titlePx, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1.1 };
+  }
+  if (variant === 'elegant') {
+    return { margin: 0, fontSize: titlePx, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', lineHeight: 1.15 };
+  }
+  if (variant === 'modern') {
+    return { margin: 0, fontSize: titlePx, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.1 };
+  }
+  if (variant === 'compact') {
+    return { margin: 0, fontSize: Math.max(10, titlePx - 1), fontWeight: 700, lineHeight: 1.05 };
+  }
+  return { margin: 0, fontSize: titlePx, fontWeight: 700, lineHeight: 1.1 };
+}
+
+export function showGstLine(style: BillStyle, restaurant: RestaurantInfo): boolean {
+  return Boolean(style.showGstin && restaurant.showGstin !== false && restaurant.gstin);
+}
+
+export function showFssaiLine(style: BillStyle, restaurant: RestaurantInfo): boolean {
+  return Boolean(style.showFssai && restaurant.showFssai !== false && restaurant.fssai);
+}
 
 export function getDividerClass(style: DividerStyle): string {
   switch (style) {
     case 'dashed':
-      return 'border-b border-neutral-800 border-dashed';
+      return 'border-b border-black border-dashed';
     case 'dotted':
-      return 'border-b border-neutral-800 border-dotted';
+      return 'border-b border-black border-dotted';
     case 'solid':
     default:
-      return 'border-b border-neutral-800';
+      return 'border-b border-black';
   }
 }
 
@@ -16,7 +54,7 @@ export function getFontSizeScale(option: FontSizeOption) {
   switch (option) {
     case 'small':
       return {
-        title: 'text-base font-bold',
+        title: 'text-base',
         subtitle: 'text-[11px]',
         body: 'text-[10px]',
         tableHeader: 'text-[10px] font-semibold',
@@ -25,7 +63,7 @@ export function getFontSizeScale(option: FontSizeOption) {
       };
     case 'large':
       return {
-        title: 'text-xl font-bold',
+        title: 'text-xl',
         subtitle: 'text-xs',
         body: 'text-xs',
         tableHeader: 'text-xs font-semibold',
@@ -35,7 +73,7 @@ export function getFontSizeScale(option: FontSizeOption) {
     case 'medium':
     default:
       return {
-        title: 'text-lg font-bold',
+        title: 'text-lg',
         subtitle: 'text-[11px]',
         body: 'text-[11px]',
         tableHeader: 'text-[11px] font-semibold',

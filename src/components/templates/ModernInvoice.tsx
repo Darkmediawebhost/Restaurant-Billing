@@ -1,7 +1,7 @@
 import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
-import { getFontSizeScale, getVariantStyles } from './templateUtils';
+import { fontPx, getFontSizeScale, getVariantStyles, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
 import { OrderedBlocks } from './OrderedBlocks';
 
 export const ModernInvoice: React.FC<TemplateProps> = ({
@@ -14,9 +14,13 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
 }) => {
   const fontScale = getFontSizeScale(style.fontSize);
   const variant = getVariantStyles(style.styleVariant);
+  const align = style.headerAlignment === 'left' ? 'text-left' : 'text-center';
 
   return (
-    <div className="w-[520px] bg-white text-neutral-900 p-8 shadow-sm font-sans text-xs select-none">
+    <div
+      className="w-[520px] bg-white text-neutral-900 p-8 shadow-sm font-sans select-none"
+      style={{ fontSize: fontPx(style.fontSize) + 1 }}
+    >
       <OrderedBlocks
         order={style.layoutOrder}
         blocks={{
@@ -32,9 +36,12 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
             </div>
           ),
           header: (
-      <div className="flex items-start justify-between border-b border-neutral-200 pb-5 mb-5">
-        <div className="max-w-[65%]">
-          <h1 className={`text-xl font-bold tracking-tight text-neutral-950 ${variant.headerWeight}`}>
+      <div
+        className="flex items-start justify-between pb-5 mb-5"
+        style={{ borderBottom: `1px ${style.dividerStyle} #000000` }}
+      >
+        <div className={`max-w-[65%] ${align}`}>
+          <h1 className={`${fontScale.title} tracking-tight text-neutral-950 ${variant.headerWeight}`}>
             {restaurant.name || 'Restaurant Name'}
           </h1>
           {restaurant.address && (
@@ -46,12 +53,12 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
             {restaurant.phone && <span>Ph: {restaurant.phone}</span>}
             {restaurant.email && <span>Email: {restaurant.email}</span>}
           </div>
-          {style.showGstin && restaurant.gstin && (
+          {showGstLine(style, restaurant) && (
             <p className="text-[10px] font-medium text-neutral-800 mt-1">
               GSTIN: <span className="font-mono">{restaurant.gstin}</span>
             </p>
           )}
-          {style.showFssai && restaurant.fssai && (
+          {showFssaiLine(style, restaurant) && (
             <p className="text-[10px] text-neutral-500">
               FSSAI Lic: <span className="font-mono">{restaurant.fssai}</span>
             </p>
@@ -195,7 +202,8 @@ export const ModernInvoice: React.FC<TemplateProps> = ({
             </div>
           )}
 
-          <div className="border-t-2 border-neutral-950 pt-2 flex justify-between items-center text-sm font-bold text-neutral-950">
+          <div style={ruleCss(style.dividerStyle, 8)} />
+          <div className="pt-2 flex justify-between items-center text-sm font-bold text-neutral-950">
             <span>GRAND TOTAL:</span>
             <span className="font-mono text-base">{formatINR(calculated.grandTotal)}</span>
           </div>

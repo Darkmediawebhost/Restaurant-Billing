@@ -1,7 +1,7 @@
 import React from 'react';
 import { TemplateProps } from './ClassicThermal';
 import { formatINR } from '../../utils/calculations';
-import { getDividerClass, getFontSizeScale, getVariantStyles } from './templateUtils';
+import { fontPx, getFontSizeScale, getVariantStyles, ruleCss, showFssaiLine, showGstLine } from './templateUtils';
 import { OrderedBlocks } from './OrderedBlocks';
 
 export const CompactThermal: React.FC<TemplateProps> = ({
@@ -14,12 +14,15 @@ export const CompactThermal: React.FC<TemplateProps> = ({
 }) => {
   const fontScale = getFontSizeScale(style.fontSize);
   const variant = getVariantStyles(style.styleVariant);
-  const divider = getDividerClass(style.dividerStyle);
+  const rule = ruleCss(style.dividerStyle);
 
   const headerAlignClass = style.headerAlignment === 'left' ? 'text-left' : 'text-center';
 
   return (
-    <div className="w-[230px] bg-white text-neutral-900 p-3 font-mono text-[10px] leading-tight select-none">
+    <div
+      className="w-[230px] bg-white text-black p-3 font-mono leading-tight select-none"
+      style={{ fontSize: fontPx(style.fontSize, true) }}
+    >
       <OrderedBlocks
         order={style.layoutOrder}
         blocks={{
@@ -37,28 +40,28 @@ export const CompactThermal: React.FC<TemplateProps> = ({
           header: (
       <>
       <div className={`mb-2 ${headerAlignClass}`}>
-        <h1 className={`text-sm font-bold ${variant.headerWeight} tracking-tight`}>
+        <h1 className={`${fontScale.title} ${variant.headerWeight} tracking-tight`}>
           {restaurant.name || 'RESTAURANT'}
         </h1>
         {restaurant.address && (
-          <p className="whitespace-pre-line text-[9px] text-neutral-600 line-clamp-2 mt-0.5">
+          <p className="whitespace-pre-line text-[0.9em] mt-0.5">
             {restaurant.address}
           </p>
         )}
         {restaurant.phone && (
-          <p className="text-[9px] text-neutral-600">Ph: {restaurant.phone}</p>
+          <p className="text-[0.9em]">Ph: {restaurant.phone}</p>
         )}
-        {style.showGstin && restaurant.gstin && (
-          <p className="text-[9px] font-semibold">GST: {restaurant.gstin}</p>
+        {showGstLine(style, restaurant) && (
+          <p className="font-semibold">GST: {restaurant.gstin}</p>
         )}
       </div>
 
-      <div className={`${divider} my-1.5`}></div>
+      <div className="my-1.5" style={rule}></div>
       </>
           ),
           details: (
       <>
-      <div className="space-y-0.5 text-[9px] mb-1">
+      <div className="space-y-0.5 text-[0.9em] mb-1">
         <div className="flex justify-between">
           <span>#{details.billNumber}</span>
           <span>{details.date}</span>
@@ -72,15 +75,24 @@ export const CompactThermal: React.FC<TemplateProps> = ({
         {details.customerName && (
           <div className="truncate">Cust: {details.customerName}</div>
         )}
+        {style.showBillTime && details.time && (
+          <div className="flex justify-between">
+            <span>Time</span>
+            <span>{details.time}</span>
+          </div>
+        )}
+        {style.showCashier && details.cashier && (
+          <div className="truncate">By: {details.cashier}</div>
+        )}
       </div>
 
-      <div className={`${divider} my-1.5`}></div>
+      <div className="my-1.5" style={rule}></div>
       </>
           ),
           items: (
       <>
-      <div className="space-y-1 text-[9px] mb-1">
-        <div className="flex justify-between font-bold border-b border-neutral-300 pb-0.5 text-[8.5px]">
+      <div className="space-y-1 text-[0.9em] mb-1">
+        <div className="flex justify-between font-bold pb-0.5" style={{ borderBottom: `1px ${style.dividerStyle} #000000` }}>
           <span className="w-[55%]">ITEM</span>
           <span className="w-[15%] text-center">QTY</span>
           <span className="w-[30%] text-right">AMT</span>
@@ -94,33 +106,33 @@ export const CompactThermal: React.FC<TemplateProps> = ({
                 {formatINR(item.amount, false)}
               </span>
             </div>
-            <div className="text-[8px] text-neutral-500 pl-1">
+            <div className="text-[0.8em] pl-1">
               @{formatINR(item.unitPrice, false)} each
             </div>
           </div>
         ))}
       </div>
 
-      <div className={`${divider} my-1.5`}></div>
+      <div className="my-1.5" style={rule}></div>
       </>
           ),
           totals: (
       <>
-      <div className="space-y-0.5 text-[9px] mb-1">
+      <div className="space-y-0.5 text-[0.9em] mb-1">
         <div className="flex justify-between">
           <span>Qty: {calculated.totalQuantity}</span>
           <span>Sub: {formatINR(calculated.grossAmount)}</span>
         </div>
 
         {calculated.discountAmount > 0 && (
-          <div className="flex justify-between text-neutral-700">
+          <div className="flex justify-between">
             <span>Disc:</span>
             <span className="tabular-nums">-{formatINR(calculated.discountAmount)}</span>
           </div>
         )}
 
         {gst.enabled && calculated.totalTax > 0 && (
-          <div className="flex justify-between text-neutral-600 text-[8.5px]">
+          <div className="flex justify-between text-[0.85em]">
             <span>
               {gst.taxType === 'intrastate' ? `GST (${calculated.taxRate}%)` : `IGST (${calculated.taxRate}%)`}:
             </span>
@@ -129,29 +141,29 @@ export const CompactThermal: React.FC<TemplateProps> = ({
         )}
 
         {calculated.roundOff !== 0 && (
-          <div className="flex justify-between text-neutral-500 text-[8px]">
+          <div className="flex justify-between text-[0.8em]">
             <span>Round off:</span>
             <span>{formatINR(calculated.roundOff)}</span>
           </div>
         )}
       </div>
 
-      <div className={`${divider} my-1.5`}></div>
+      <div className="my-1.5" style={rule}></div>
 
       {/* Total */}
       <div className="flex justify-between items-center py-0.5 font-bold">
-        <span className="text-[10px] uppercase">TOTAL</span>
-        <span className="text-sm tabular-nums">{formatINR(calculated.grandTotal)}</span>
+        <span className="uppercase">TOTAL</span>
+        <span className={`${fontScale.total} tabular-nums`}>{formatINR(calculated.grandTotal)}</span>
       </div>
 
-      <div className={`${divider} my-2`}></div>
+      <div className="my-2" style={rule}></div>
       </>
           ),
           footer: (
-      <div className="text-center text-[8px] text-neutral-500 space-y-0.5">
+      <div className="text-center text-[0.8em] space-y-0.5">
         <p>{restaurant.footerMessage?.trim() || style.footerMessage || 'Thank You!'}</p>
-        {style.showFssai && restaurant.fssai && (
-          <p className="text-[7.5px]">Lic: {restaurant.fssai}</p>
+        {showFssaiLine(style, restaurant) && (
+          <p className="text-[0.75em]">Lic: {restaurant.fssai}</p>
         )}
       </div>
           ),
